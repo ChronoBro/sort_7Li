@@ -1,0 +1,136 @@
+void Be9_xs()
+{
+
+  TCanvas * c5 = new TCanvas("heyo","heyo",800,600);
+
+  int k=181;
+  ifstream file1("../AngCorr/elas_xsection.plot"); //apparently you need to write out the whole thing for ROOT
+  ifstream file2("../AngCorr/inel_xsection.plot");
+  ifstream file3("../AngCorr/inel1_xsection.plot");
+
+  //if(file1.is_open())cout << "file1 open" << endl;
+  //if(file2.is_open())cout << "file2 open" << endl;
+
+  float angle = new float[k];
+  float elas = new float[k];
+  float inel = new float[k];
+  float inel1 = new float[k];
+  float elasTOT=0;
+
+  float SCALER = 384205.;
+  SCALER = 7261; //run 61 with Be
+  SCALER = 1.; // don't have FC data for first mult=1 runs
+  SCALER = 0.00009736; // taking into account target thickness and beam current should give results in millibarns 
+  //*3 depending on definition of what's written down... also could vary beam current slightly to fit
+  //WTF their right on top of each other, am I drunk or is that physics?  9/21/2016
+  //also remember you made a scaler that nultiplies 
+  for(int i=0;i<k;i++)
+    {
+      file1 >> angle[i] >> elas[i];
+      file2 >> angle[i] >> inel[i];
+      file3 >> angle[i] >> inel1[k];
+      elas[i] = elas[i]+inel1[k];
+      elas[i] = elas[i];
+      inel[i] = inel[i];
+      //cout << elas[i] << endl;
+      //cout << inel[i] << endl;
+    }
+
+
+  TGraph * E = new TGraph(k,angle,elas);
+  TGraph * I = new TGraph(k,angle,inel);
+
+  TH1F * eff1D = (TH1F*)sim->Get("theta_reactionCM_R")->Clone("26");
+  TH1F * really = (TH1F*)sim->Get("theta_reactionCM_P")->Clone("me");
+  eff1D->Divide(really);
+
+  eff1D->Draw();
+
+  TH1F * Be1D = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_9Be")->Clone("27");
+  Be1D->Divide(eff1D);
+
+  float binW;
+  binW = Be1D->GetXaxis()->GetBinWidth(23)*3.14159/180.;
+
+  for(int i=1;i<=125;i++)
+    {
+      float solidAng;
+      float thetaC;
+      thetaC = Be1D->GetBinCenter(i)*3.14159/180.;
+      solidAng = 2*3.14159*(cos(thetaC-binW/2.) - cos(thetaC+binW/2.));
+      float content = Be1D->GetBinContent(i);
+      content = content/solidAng;//sin(Be1D->GetBinCenter(i)*3.14159/180.); //-->I've had the sin(theta) in there all along --> this is only an approximation of the solid angle (works because of binning)
+      Be1D->SetBinContent(i,content*SCALER);
+      if(Be1D->GetBinCenter(i)>24)Be1D->SetBinContent(i,0.);
+    }
+  
+
+  Be1D->SetMarkerStyle(20);
+  Be1D->Draw("P");
+  I->SetMarkerStyle(3);
+  I->Draw("same");
+  Be1D->GetXaxis()->SetRangeUser(0,25);
+  Be1D->GetXaxis()->SetTitle("#theta_{CM}");
+  //Be1D->GetYaxis()->SetTitle("#frac{d#sigma(mb)}{d#Omega}");
+  TLatex title;
+  title.DrawLatex(-5,20,"#frac{d#sigma(mb)}{d#Omega}");
+  Be1D->SetTitle("^{7}Li(7.2-) #sigma_{inel}");
+  c5->SetLogy();
+
+  TFile * sim2 = new TFile("~/elasSim/sim9Be/sim.root");
+
+  TCanvas * c6 = new TCanvas("r","r",800,600);
+  TH1F * effEl = (TH1F*)sim2->Get("theta_reactionCM_R")->Clone("65");
+  TH1F * really2 = (TH1F*)sim2->Get("theta_reactionCM_P")->Clone("56");
+
+  effEl->Divide(really2);
+
+  TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/7Li_elas_9Be")->Clone("45");
+  BeElas->Divide(effEl);
+
+  binW = BeElas->GetXaxis()->GetBinWidth(23)*3.14159/180.;
+ 
+  for(int i=1;i<=125;i++)
+    {
+      float solidAng;
+      float thetaC;
+      thetaC = BeElas->GetBinCenter(i)*3.14159/180.;
+      solidAng = 2*3.14159*(cos(thetaC-binW/2.) - cos(thetaC+binW/2.));
+
+      float content = BeElas->GetBinContent(i);
+      //cout << content << endl;
+      content = content/solidAng;//sin(BeElas->GetBinCenter(i)*3.14159/180.);
+      BeElas->SetBinContent(i,content*SCALER);
+      if(BeElas->GetBinCenter(i)>7.5 && BeElas->GetBinCenter(i)<11)
+	BeElas->SetBinContent(i,0.);
+      if(BeElas->GetBinCenter(i) < 3.5)
+	 BeElas->SetBinContent(i,0.);
+    }
+
+  BeElas->SetMarkerStyle(20);
+  BeElas->Draw("P");
+  BeElas->GetYaxis()->SetRangeUser(1.,100000);
+  I->SetLineColor(2);
+  E->SetMarkerStyle(3);
+    E->Draw("same");
+  I->Draw("same");
+  Be1D->SetMarkerColor(2);
+  Be1D->Draw("sameP");
+  BeElas->GetXaxis()->SetRangeUser(0,25);
+  BeElas->GetXaxis()->SetTitle("#theta_{CM}");
+  title.DrawLatex(-5,200,"#frac{d#sigma(mb)}{d#Omega}");
+  BeElas->SetTitle("^{7}Li(7.2-) #sigma_{el}");
+  c6->SetLogy();
+
+
+
+  TCanvas * c7 = new TCanvas("b","b",800,600);
+  TH1F * relative = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_9Be")->Clone("73");
+  relative->Divide(eff1D);
+  relative->Divide(BeElas);
+  relative->SetMarkerStyle(20);
+  relative->Draw("P");
+  c7->SetLogy();
+  relative->GetXaxis()->SetRangeUser(0,25);
+
+}

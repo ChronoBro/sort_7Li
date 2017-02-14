@@ -1,0 +1,128 @@
+void SiCal()
+{
+  TFile *file = new TFile("../sort.root");
+
+
+  //ofstream ofile("S2Pies.dat");
+  ofstream ofile("rPies.dat");
+
+  ostringstream outstring;
+  string name;
+
+  int p1= 30, p2=30; //+- fit limits up to 2 peaks. May be different.
+  int const num_par = 8; //number of peaks times 2(pol1)+3(gaus).
+
+  int ent = 0;
+
+  TCanvas *mycan = new TCanvas("mycan","",1000,600);
+  int it = 0;
+  for(int ic = 0 ;ic<48;ic++)
+    {
+      
+      cout << it << " " << ic << endl;
+      file->cd();
+      outstring.str("");
+      //outstring << "S2/S2pies/S2PieR_" << ic;
+      outstring << "rus/Rpies/RusPieR_" << ic;
+      name = outstring.str();
+      TH1I * hist = (TH1I*)file->Get(name.c_str());
+      hist->GetXaxis()->SetRangeUser(600,1000);
+      //hist->GetXaxis()->SetRangeUser(850,1200);
+      ent = hist->GetEntries();
+      
+      cout << ent << endl;
+      hist->Draw();
+      mycan->SetLogy();
+      mycan->Modified();
+      mycan->Update();
+      if(ent <50)
+	{
+	  ofile << it << " " << ic << " " << 0 << " " << 0 <<endl;
+	  cout << ic << " Only has " << ent << " Entries. " << endl;
+	  continue;
+	}
+      else
+	{
+	  
+	  TMarker * mark;
+	  ofile << it << " " << ic;
+	  ofile << " ";
+	      
+	  mark=(TMarker*)mycan->WaitPrimitive("TMarker"); //Get the Background limits
+	  double bkg_lo = mark->GetX();
+	  delete mark;  
+	  mark=(TMarker*)mycan->WaitPrimitive("TMarker");
+	  double bkg_hi = mark->GetX();
+	  delete mark;
+	  mark=(TMarker*)mycan->WaitPrimitive("TMarker"); // Get the 1st peak initial guess
+	  double peak1 = mark->GetX();
+	  delete mark;
+	  mark=(TMarker*)mycan->WaitPrimitive("TMarker"); // Get the 2nd peak initial guess
+	  double peak2 = mark->GetX();
+	  delete mark;
+	  
+	  double par[num_par] = {0.};
+	  double out[num_par] = {0.}; 
+	  
+	  //cout << "peak1 = " << peak1 << endl;
+	  double peak1_lo = peak1 - p1, peak1_hi = peak1 + p1; // Peak center and limits
+	  double peak2_lo = peak2 - p2, peak2_hi = peak2 + p2; // Peak center and limits
+	  
+	  TF1 *l1 = new TF1("l1", "pol2", bkg_lo, bkg_hi);
+	  TF1 *g1 = new TF1("g1", "gaus", peak1_lo,peak1_hi);
+	  TF1 *g2 = new TF1("g2", "gaus", peak2_lo,peak2_hi);
+	  
+	  TF1 *total = new TF1("total", "gaus(0)+gaus(3)+pol2(6)", bkg_lo,bkg_hi);
+	  
+	  //cout << peak1_lo << " " << peak1_hi << endl;
+	  
+	  g1->SetParLimits(0,1.,1000.);
+	  g1->SetParLimits(1,bkg_lo,bkg_hi);
+	  g1->SetParLimits(2,0.1,10.0);
+
+	  g2->SetParLimits(0,1.,1000.);
+	  g2->SetParLimits(1,bkg_lo,bkg_hi);
+	  g2->SetParLimits(2,0.1,10.0);
+	  
+	  
+	  
+	  hist->Fit(l1,"RQ");
+	  hist->Fit(g1,"RQ+");
+	  hist->Fit(g2,"RQ+");
+	  
+	  g1->GetParameters(&par[0]);
+	  g2->GetParameters(&par[3]);
+	  l1->GetParameters(&par[6]);
+	  
+	  total->SetParameters(par);
+	  
+	  
+	  //	  total->SetParLimits(2,1.,1000.);
+	  //total->SetParLimits(3,bkg_lo,bkg_hi);
+	  //total->SetParLimits(4,0.1,10.0);
+	  hist->Fit(total,"RQ");
+	  total->GetParameters(out);
+	  
+	  for(int i=0;i<num_par;i++)
+	    {
+	      cout << i << " " <<out[i] << " "<< par[i]<< endl;
+	    }
+	  
+	  cout << " " << total->GetParameter(1) << endl;
+	  ofile << total->GetParameter(1) << " ";
+	  ofile << total->GetParameter(4);
+	  
+	  
+	  mark=(TMarker*)mycan->WaitPrimitive("TMarker"); //Get the Background limits
+	  
+	  ofile << endl;
+	  cout << " done " << endl;
+	}
+      
+      cout << "done2" << endl;
+    }
+  file->Close();
+  ofile.close();
+  cout << "done4" << endl;
+  return;
+}

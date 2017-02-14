@@ -1,0 +1,171 @@
+#include <iostream>
+#include <fstream>
+#include "TGraph.h"
+using namespace std;
+
+
+
+void posCalc ()
+{
+
+  TCanvas mycan;
+  int no=0;
+  ostringstream outstring;
+  string name;
+
+  ofstream ofile1("cal/posCorrect_slope_d.cal");
+  ofstream ofile2("cal/posCorrect_intercept_d.cal");
+  ofstream ofile3("cal/posCorrect_slope_a.cal");
+  ofstream ofile4("cal/posCorrect_intercept_a.cal");
+
+  float quadD[32];
+  float quadA[32];
+  float slopeD[32];
+  float interceptD[32];
+  float slopeA[32];
+  float interceptA[32];
+  float intSlopeD[32];
+  float intIntD[32];
+  float intSlopeA[32];
+  float intIntA[32];
+
+  for(no=0;no<16;no++)
+    {
+      outstring.str("");
+      outstring << "/home/lithium7/unpacker/cal/blockCalCsid"<<no;
+      name = outstring.str();
+      name = name + ".cal";
+      ifstream ifile1(name.c_str());
+
+      
+      
+      int l;
+      int m;
+      int n;
+      int p=8;
+      float help1[8];
+      float help2[8];
+      TGraph * gr1;
+      TGraph * gr2;
+      TF1 * fit1;
+      TF1 * fit2;
+
+      float theta[8]={6.48817,7.80675,9.11787,10.419,11.7094,12.9882,14.2532,15.5046};
+      //float theta[7]={2.05126,2.543,3.0343,3.5252,4.0156,4.5054,4.9945};
+      
+      for (l=0;l<p;l++)
+	{
+	  
+	  ifile1 >> help1[l] >> help2[l];
+	  
+	}
+      
+      
+      gr1 = new TGraph(p,theta,help1);
+      gr1->Fit("pol2");
+      fit1 = gr1->GetFunction("pol2");
+      //fit1->SetParameter(2,0.000004);
+      //fit1->SetParameter(1,0.00034);
+      //fit1->SetParameter(0,0.034);
+      quadD[no] = fit1->GetParameter(2);
+      slopeD[no] = fit1->GetParameter(1);
+      interceptD[no] = fit1->GetParameter(0);
+
+      
+      gr1->Draw();
+      //  mycan.Update();   
+
+      TMarker * mark;
+      mark=(TMarker*)mycan.WaitPrimitive("TMarker"); 
+      delete mark;
+      delete gr1; 
+      
+      //TCanvas c2;
+      gr2 = new TGraph(p,theta,help2);
+      gr2->Fit("pol1");
+      fit2 = gr2->GetFunction("pol1");
+      intSlopeD[no] = fit2->GetParameter(1);
+      intIntD[no] = fit2->GetParameter(0);
+      
+      gr2->Draw();
+      //      mycan.Update();
+      mark=(TMarker*)mycan.WaitPrimitive("TMarker"); 
+      delete mark;
+   
+      delete gr2;
+
+
+    }
+
+  for(no=0;no<16;no++)
+    {
+      outstring.str("");
+      outstring << "/home/lithium7/unpacker/cal/blockCalCsiA"<<no;
+      name = outstring.str();
+      name = name + ".cal";
+      ifstream ifile1(name.c_str());
+      
+      
+      int l;
+      int m;
+      int n;
+      int p=8;
+      float help1[8];
+      float help2[8];
+      TGraph * gr1;
+      TGraph * gr2;
+      TF1 * fit1;
+      TF1 * fit2;
+      float theta[8]={6.48817,7.80675,9.11787,10.419,11.7094,12.9882,14.2532,15.5046};
+      //float theta[7]={2.05126,2.543,3.0343,3.5252,4.0156,4.5054,4.9945};
+      
+      for (l=0;l<p;l++)
+	{
+	  
+	  ifile1 >> help1[l] >> help2[l];
+	  
+	}
+      
+      
+      gr1 = new TGraph(p,theta,help1);
+      gr1->Fit("pol2");
+      fit1 = gr1->GetFunction("pol2");
+      //fit1->SetParameter(2,0.000004);
+      //fit1->SetParameter(1,0.00034);
+      //fit1->SetParameter(0,0.034);
+      quadA[no] = fit1->GetParameter(2);
+      slopeA[no] = fit1->GetParameter(1);
+      interceptA[no] = fit1->GetParameter(0);
+      
+      gr1->Draw();
+      mycan.Update();
+      TMarker * mark;
+      mark=(TMarker*)mycan.WaitPrimitive("TMarker"); 
+      delete mark;      
+      delete gr1;
+      // TCanvas c2;
+      gr2 = new TGraph(p,theta,help2);
+      gr2->Fit("pol1");
+      fit2 = gr2->GetFunction("pol1");
+      intSlopeA[no] = fit2->GetParameter(1);
+      intIntA[no] = fit2->GetParameter(0);
+      
+      gr2->Draw();
+      mycan.Update();
+      mark=(TMarker*)mycan.WaitPrimitive("TMarker"); 
+      delete mark;
+
+      delete gr2;
+    }
+
+  for(int y=0;y<16;y++)
+    {
+      ofile1 << quadD[y] << "\t" << slopeD[y] << "\t" << interceptD[y] << endl;
+      ofile2 << intSlopeD[y] << "\t" << intIntD[y] << endl;
+      ofile3 << quadA[y] << "\t" << slopeA[y] << "\t" << interceptA[y] << endl;
+      ofile4 << intSlopeA[y] << "\t" << intIntA[y] << endl;
+      
+    }
+
+
+}

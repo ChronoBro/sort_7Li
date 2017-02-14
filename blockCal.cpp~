@@ -1,0 +1,44 @@
+#include "blockCal.h"
+#include "math.h"
+
+
+blockCal::blockCal(string file)
+{
+  string name;
+  name = "cal/"+file +".cal";
+  ifstream ifile(name.c_str());
+  if (!ifile.is_open()) 
+    {
+      cout << "could not open file " << name << endl;
+    }
+
+  for(int i=0;i<8;i++)
+    {
+      ifile >>  Eslope[i] >> Eint[i];
+
+    }
+  ifile.close();
+  ifile.clear();
+
+}
+
+blockCal::~blockCal()
+{
+
+}
+
+void blockCal::getCal(int blocko)
+{
+  calSlope = Eslope[blocko-1]; //c++ arrays starts at 0, and telescope::block(iring) doesn't
+  calInt = Eint[blocko-1];
+  return;
+
+}
+
+float blockCal::getE(float channel, int blocko)
+{
+  getCal(blocko);
+  energy = calSlope*channel+calInt;
+  return energy;
+
+}

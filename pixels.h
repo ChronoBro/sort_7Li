@@ -14,6 +14,7 @@ struct location
   double r,theta,phi;
   double deltatheta;
   double deltaphi;
+  double steradian;
 };
 
 struct teleP
@@ -36,7 +37,7 @@ class pixels
   double targetdist[2];
   float deltatheta;
   float deltaphi;
-
+  float ** xy;;
   
 };
 #endif

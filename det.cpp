@@ -20,6 +20,8 @@ det::det(histo * Histo0)
   S2_count=0;
   RusS2_count=0;
 
+ 
+
 }
 //************************************************
   /**
@@ -96,15 +98,7 @@ void det::analyze(int event)
 	}
     }
 
-
-  Histo->S2PiesMult->Fill(Silicon->Telescope[1]->Pie.Nstore);
-  Histo->S2RingsMult->Fill(Silicon->Telescope[1]->Ring.Nstore);
-  Histo->RusPiesMult->Fill(Silicon->Telescope[0]->Pie.Nstore);
-  Histo->RusRingsMult->Fill(Silicon->Telescope[0]->Ring.Nstore);
-  
-  Histo->S2CsIMult->Fill(Silicon->Telescope[1]->Csi.Nstore);
-  Histo->RusCsIMult->Fill(Silicon->Telescope[0]->Csi.Nstore);
-
+ 
 
   // trying to tease out source of double peaks in S2 CsI's, here I'm checking if there are any correlation between double peaks and multiplicity, i.e. if a Rus CsI fires as well does it shift the S2
   int rusmult = Silicon->Telescope[0]->Csi.Nstore;
@@ -112,6 +106,61 @@ void det::analyze(int event)
   int icsi = Silicon->Telescope[1]->Csi.Order[0].strip+16;
   int ipie = Silicon->Telescope[1]->Pie.Order[0].strip;
   int iring = Silicon->Telescope[1]->Ring.Order[0].strip;
+
+  int j=Silicon->Telescope[0]->Pie.Nstore;
+  int k= Silicon->Telescope[1]->Pie.Nstore;
+
+  /*
+  if(j==0 && k!=0)
+    {
+      for(int i=0;i<Silicon->Telescope[1]->Pie.Nstore;i++)
+	    {
+	      if(Silicon->Telescope[1]->Pie.Order[i].energy >3)k--;
+	      if(k==0)  Histo->RusPiesMult->Fill(Silicon->Telescope[0]->Pie.Nstore+Silicon->Telescope[1]->Pie.Nstore);
+	    }
+    }
+  else if(j!=0 && k==0)
+    {
+      for(int i=0;i<Silicon->Telescope[0]->Pie.Nstore;i++)
+	{
+	  if(Silicon->Telescope[0]->Pie.Order[i].energy >3)j--;
+	  if(j==0) Histo->RusPiesMult->Fill(Silicon->Telescope[0]->Pie.Nstore+Silicon->Telescope[1]->Pie.Nstore);
+	}
+
+    }
+  else
+    {
+      for(int i=0;i<Silicon->Telescope[0]->Pie.Nstore;i++)
+	{
+	  if(Silicon->Telescope[0]->Pie.Order[i].energy >3)j--;
+	  if(j==0)
+	    {
+	      for(int i=0;i<Silicon->Telescope[1]->Pie.Nstore;i++)
+		{
+		  if(Silicon->Telescope[1]->Pie.Order[i].energy >3)k--;
+		  if(k==0)  Histo->RusPiesMult->Fill(Silicon->Telescope[0]->Pie.Nstore+Silicon->Telescope[1]->Pie.Nstore);
+		}
+	    }
+	}
+    }
+  */
+
+	// if(Silicon->Telescope[0]->Pie.Order[0].energy > 3 || Silicon->Telescope[1]->Pie.Order[0].energy > 3)
+	// {
+  Histo->RusPiesMult->Fill(j);
+  Histo->RusRingsMult->Fill(Silicon->Telescope[0]->Ring.Nstore);
+  // if((Silicon->Telescope[0]->Pie.Nstore+Silicon->Telescope[1]->Pie.Nstore)>1){cout << "Rus E = " << Silicon->Telescope[0]->Pie.Order[0].energy << endl << "Rus pie = " << Silicon->Telescope[0]->Pie.Order[0].strip << endl;cout << "S2 E = " <<Silicon->Telescope[1]->Pie.Order[0].energy << endl <<"S2 pie = " << Silicon->Telescope[1]->Pie.Order[0].strip << endl;}
+      // }
+  // if(Silicon->Telescope[1]->Pie.Order[0].energy > 3)
+    //  {
+  Histo->S2PiesMult->Fill(Silicon->Telescope[1]->Pie.Nstore);
+  Histo->S2RingsMult->Fill(Silicon->Telescope[1]->Ring.Nstore);
+  // }
+
+  Histo->S2CsIMult->Fill(Silicon->Telescope[1]->Csi.Nstore);
+  Histo->RusCsIMult->Fill(Silicon->Telescope[0]->Csi.Nstore);
+
+
 
   if(icsi==Silicon->Telescope[1]->Csicheck)//&&S2mult==1)
     {
@@ -147,7 +196,7 @@ void det::analyze(int event)
   Histo->TotCsIMult->Fill(CsImult);
 
 
-  if(mult >= 2)
+  if(mult >= 1) //I am throwing away a TON of elastic data because of this shit here...woo 9/14/2016
     {
       corr_7Li();
     }
@@ -178,7 +227,7 @@ void det::corr_7Li()
 
   very seriously consider putting markers in the code to see where the hell its going...
 
-  need to check loss files (pretty sure not fixed as of 12/2015)->done 12/2015
+  need to check loss files (pretty sure not fixed as of 12/2015)->done 12/2015->was error in Ta.loss  but fixed 6/2016
   
   need to make sure PID is working properly->seems to be problems aof 12/2015
 
@@ -188,7 +237,7 @@ void det::corr_7Li()
 
   Make effeciency map->sorta done 12/2015 but might need some work from calibrations....
 
-  Check Z-lines especially for S2->established 12/2015, clearly some problems
+  Check Z-lines especially for S2->established 12/2015, clearly some problems->Not a problem now 7/2016
 
   Consider making a class for all the calculations(should do for practice 1/2016), or just make functions.
 
@@ -215,6 +264,112 @@ void det::corr_7Li()
 
   int target_no = Silicon->Telescope[0]->target;
   int useful=0;
+
+  if(Correl.mult7Li>=1)
+    {
+      N7Li++;
+      //if(Correl.mult7Li>1) //cout << "Rare Double 7Li events" << endl;
+      Histo->mult7Li->Fill(Correl.mult7Li-0.5);
+      //cout << Correl.mult7Li << endl;
+      float mass_target=0;
+      if(target_no==1)mass_target=9;
+      if(target_no==2)mass_target=12;
+      if(target_no==3)mass_target=27;
+
+      float EPA0 = 24.;  
+      float Pbeam2_mean = sqrt(pow((EPA0+931.478)*7.,2)-pow(7.*931.478,2));
+      float Ecm = (EPA0+931.478)*7. + mass_target*931.478;
+      float pcm = Pbeam2_mean;
+      float vCM = pcm/Ecm*30.;
+      
+      
+      //float velReactionCoM[3] ={0,0,vCM};
+      //float  * momCoM;
+      //momCoM = Kinematics.transformMom(Mtot,velReactionCoM,energyTot,momC);
+      //float momTot = sqrt(pow(momCoM[0],2.)+pow(momCoM[1],2.)+pow(momCoM[2],2.));
+      //float mu = mas_target/(mass_target+7);
+      float thetaReactCoM=0;
+      if(target_no==1)
+	{
+	 thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
+	 Histo->elas7Li_9Be->Fill(thetaReactCoM*180/3.14159);
+	}
+      if(target_no==2)
+	{
+	  thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
+	  Histo->elas7Li_12C->Fill(thetaReactCoM*180/3.14159);
+	}
+      if(target_no==3)
+	{
+	 thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
+	 Histo->elas7Li_27Al->Fill(thetaReactCoM*180/3.14159);
+	}
+  
+
+
+    }
+  if(Correl.multAlpha==2)
+    {
+      float Q8Be = -.09184;
+      Correl.zeroMask();
+      Correl.maskAlpha[0]=1; //1 or 0 depending if you want to add that particle to the array for reconstruction
+      Correl.maskAlpha[1]=1;
+      Correl.makeArray(1);
+      float Erel_8Be = Correl.findErel(target_no);
+      float Ex = Erel_8Be + Q8Be;
+
+      if(Correl.alpha[0]->itele==0 && Correl.alpha[1]->itele==0){please=1;useful=3;}
+      if(Correl.alpha[0]->itele==1 && Correl.alpha[1]->itele==1){please=2;useful=4;}
+      if(Correl.alpha[0]->itele==1 && Correl.alpha[1]->itele==0){please=3;useful=1;}
+      if(Correl.alpha[0]->itele==0 && Correl.alpha[1]->itele==1){please=3;useful=2;}
+
+      Histo->Ex8Be->Fill(Ex);
+      //if(please==1)Histo->Ex6Li_Rus->Fill(Ex);
+      //if(please==2)Histo->Ex6Li_S2->Fill(Ex);
+      //if(please==3)Histo->Ex6Li_RusS2->Fill(Ex);
+      /*
+      ptr[0]=Correl.alpha[0]->MomCM[0];
+      ptr[1]=Correl.alpha[0]->MomCM[1];
+      ptr[2]=Correl.alpha[0]->MomCM[2];
+      PTR2 = pow(ptr[0],2)+pow(ptr[1],2)+pow(ptr[2],2);
+      etr = sqrt(pow(931.478*2,2)+PTR2);
+      */
+
+      pa[0]=Correl.alpha[0]->MomCM[0];
+      pa[1]=Correl.alpha[0]->MomCM[1];
+      pa[2]=Correl.alpha[0]->MomCM[2];
+      PA2 = pow(pa[0],2)+pow(pa[1],2)+pow(pa[2],2);
+      ea = sqrt(pow(931.478*4,2)+PA2);
+      
+      cosBeta = pa[2]/sqrt(PA2);
+
+      if(cosBeta>0.5)Histo->Ex8BeL2->Fill(Ex);
+      if(cosBeta<-0.5)Histo->Ex8BeL1->Fill(Ex);
+      if(cosBeta>-0.5&&cosBeta<0.5)Histo->Ex8BeT->Fill(Ex);
+
+      pt[0] = -Correl.alpha[0]->Mvect[0] - Correl.alpha[1]->Mvect[0];
+      pt[1] = -Correl.alpha[0]->Mvect[1] - Correl.alpha[1]->Mvect[1];
+      pt[2] = 1489.22-Correl.alpha[0]->Mvect[2] - Correl.alpha[1]->Mvect[2];
+      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
+
+
+      if(target_no==1 && Ex>-5 && Ex<0.18)
+	{
+	  et = sqrt(pow(931.478*8.022,2)+pow(ppt,2));
+	  ek = et - 8.022*931.478;
+	  
+	  Ex_target = 24.2*7.-Correl.alpha[0]->Ekin-Correl.alpha[1]->Ekin-ek-.368; //.368 is total Q-value
+	  Histo->ExTarget8Li->Fill(Ex_target);
+	  //Histo->Li6_thetaCM->Fill(Correl.thetaCM*180/3.1415927);
+	  //Histo->Li6velCM->Fill(Correl.velocityCM);
+	}
+
+
+      
+
+    }
+
+
   if(Correl.multH2 == 1 && Correl.multAlpha ==1)
     {
 
@@ -225,6 +380,7 @@ void det::corr_7Li()
       Correl.mask2H[0]=1;
       Correl.maskAlpha[0]=1;
       Correl.makeArray(1);
+      Correl.velC[2]=7.1;
       float Erel_6Li = Correl.findErel(target_no);
       float Ex = Erel_6Li+Q6Li;
 
@@ -238,6 +394,10 @@ void det::corr_7Li()
       ptr[2]=Correl.H2[0]->MomCM[2];
       PTR2 = pow(ptr[0],2)+pow(ptr[1],2)+pow(ptr[2],2);
       etr = sqrt(pow(931.478*2,2)+PTR2);
+      
+      //Histo->TKE_H2->Fill(Silicon->Telescope[Correl.H2[0]->itele]->Csi.Order[0].energy);//(etr-931.478*2);
+      // Histo->TKE_A->Fill(Silicon->Telescope[Correl.alpha[0]->itele]->Csi.Order[0].energy);
+      //cout << "TKE H2 = "  << etr - 931.478*2 << endl;
 
       cosBeta = ptr[2]/sqrt(PTR2);
 
@@ -246,12 +406,16 @@ void det::corr_7Li()
       pa[2]=Correl.alpha[0]->MomCM[2];
       PA2 = pow(pa[0],2)+pow(pa[1],2)+pow(pa[2],2);
       ea = sqrt(pow(931.478*4,2)+PA2);
+      //Histo->TKE_A->Fill(ea-931.478*4);
+      //cout << "TKE A = " << ea - 931.478*4 << endl;
+
 
       Histo->Ex6Li_da->Fill(Ex);
       if(cosBeta>0.5)Histo->Ex6Li_L2->Fill(Ex);
       if(cosBeta<-0.5)Histo->Ex6Li_L1->Fill(Ex);
       if(cosBeta>-0.5&&cosBeta<0.5)Histo->Ex6Li_T->Fill(Ex);
-      
+
+      /*
       if(please==1)
 	{
 	  Histo->Ex6Li_Rus->Fill(Ex);
@@ -275,7 +439,8 @@ void det::corr_7Li()
 	  if(cosBeta<-0.5)Histo->Ex6Li_RusS2L1->Fill(Ex);
 	  if(cosBeta>-0.5&&cosBeta<0.5)Histo->Ex6Li_RusS2T->Fill(Ex);
 	}
-      
+      */   
+
       pt[0] = -Correl.alpha[0]->Mvect[0] - Correl.H2[0]->Mvect[0];
       pt[1] = -Correl.alpha[0]->Mvect[1] - Correl.H2[0]->Mvect[1];
       pt[2] = 1489.22-Correl.alpha[0]->Mvect[2] - Correl.H2[0]->Mvect[2];
@@ -286,8 +451,10 @@ void det::corr_7Li()
 	  et = sqrt(pow(931.478*10.,2)+pow(ppt,2));
 	  ek = et - 10.*931.478;
 	  
-	  Ex_target = 23.889*7.-Correl.alpha[0]->Ekin-Correl.H2[0]->Ekin-ek-Q6Li;
+	  Ex_target = 24.*7.-Correl.alpha[0]->Ekin-Correl.H2[0]->Ekin-ek-Q6Li;
 	  Histo->ExTarget_10Be->Fill(Ex_target);
+	  Histo->Li6_thetaCM->Fill(Correl.thetaCM*180/3.1415927);
+	  Histo->Li6velCM->Fill(Correl.velocityCM);
 	}
 
       if(Ex>1.9&&Ex<2.65)
@@ -308,8 +475,17 @@ void det::corr_7Li()
 	  chi = (atan2(relV[1],relV[0])-Correl.phiCM)*180/3.1415927;
           if (chi < 0) chi+=360.;
 	  if (chi >  360) chi-=360.;
-	  if(target_no==1&&Ex_target>-5.&&Ex_target<1.5)Histo->cosPsi_10Be->Fill(cosPsi);
-
+	  if(target_no==1)
+	    { 
+	      if(Ex_target>-5.&&Ex_target<10.)
+		{
+		  Histo->cosPsi_Chi_10Be->Fill(cosPsi,chi);
+		  Histo->cosPsi_10Be->Fill(cosBeta);//(cosPsi);
+		  if(please==1){Histo->cosPsi_10Be_Rus->Fill(cosBeta);Histo->cosPsi_Chi_10Be_Rus->Fill(cosPsi,chi);}//(cosPsi);
+		  else if(please==2){Histo->cosPsi_10Be_S2->Fill(cosBeta);Histo->cosPsi_Chi_10Be_S2->Fill(cosPsi,chi);}//(cosPsi);
+		  else if(please==3){Histo->cosPsi_10Be_RusS2->Fill(cosBeta);Histo->cosPsi_Chi_10Be_RusS2->Fill(cosPsi,chi);}//(cosPsi);
+		}
+	    }
 	}
 
 
@@ -348,20 +524,46 @@ void det::corr_7Li()
 	    {
 	      pt[0] = -Correl.alpha[0]->Mvect[0] - Correl.H3[0]->Mvect[0];
 	      pt[1] = -Correl.alpha[0]->Mvect[1] - Correl.H3[0]->Mvect[1];
-	      pt[2] = 1489.22-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
+	      pt[2] = 1497.45-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
 	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
+
+
+	      /* //I believe this code below was screwing up my target excitation energy spectrum because I changed pt!
+	      double Ecm = sqrt( pow(24*7.+(7+9)*931.478,2.) - pow(Correl.momentumCM,2.) );
+	      pt[0] = -Correl.momC[0];
+	      pt[1] = -Correl.momC[1];
+	      pt[2] = -Correl.momC[2];
+	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
+	      //cout << Ecm << endl;
+	      double Ep = sqrt( pow(ppt,2.) + pow(7*931.478+4.63,2.) );
+	      double Et = Ecm-Ep;	    
+	      */
+
+
 	      
 	      et = sqrt(pow(931.478*9.,2)+pow(ppt,2));
 	      double vvt = ppt/et*pow(29.98,2);
 	      for (int i=0;i<3;i++) vt[i]=vvt/ppt*pt[i];
+	      //double Ein = (24+931.478)&7.;
+	      //double Etot = Ein + 9*931.478;
+	      //double p =  pow( pow(Ein,2.)- pow(7*931.478,2.) ,0.5);
+	      //double vcm = pin/Etot;
 	      ek = et - 9.*931.478;
-	      Ex_target = 23.889*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li; //first number is energy of beam after passing through half of target
+	      Ex_target = 24.2*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li; //first number is energy of beam after passing through half of target
+
+	      //Ex_target = sqrt( pow(Et,2.)-pow(ppt,2.) ) - 9.*931.478;
+	      //for some reason the above line gives correct shape of spectra but it's "stretched" for some reason
+	      //I will try Bob's method and see if it has the same problem 9/23/2016
+	      //cout << Ex_target << endl;
+	      //Just realizing now that this is non-relativistic calculation done in LAB frame 9/23/2016
+	      //Will try implementing a SR formulation
 	      // Histo->ExTarget_9Be->Fill(Ex_target);
 	      //	  cout << "made it to target energy Be" << endl;
 	      Histo->velCM7Li_ta->Fill(Correl.velocityCM);
 	      // if(Correl.thetaCM > 0.0084)
 	      //       Histo->Li7_theta_CM_9Be->Fill(Correl.thetaCM*180./3.1415927,1./sin(Correl.thetaCM));
 	      Histo->Li7_theta_CM_9Be->Fill(Correl.thetaCM*180/3.14159);
+	      Histo->Li7_theta_reactCoM_9Be->Fill(Correl.thetaReactCoM*180/3.14159);
 	      //cout << 1./sin(Correl.thetaCM) << endl;
 	      pt[0] = Correl.H3[0]->Mvect[0];
 	      pt[1] = Correl.H3[0]->Mvect[1];
@@ -379,17 +581,35 @@ void det::corr_7Li()
 	    {
 	      pt[0] = -Correl.alpha[0]->Mvect[0] - Correl.H3[0]->Mvect[0];
 	      pt[1] = -Correl.alpha[0]->Mvect[1] - Correl.H3[0]->Mvect[1];
-	      pt[2] = 1488.84-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
-	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));	      
+	      pt[2] = 1497.45-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
+	      //pt[2] = 1488.-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
+	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
+
+	      /*
+	      double Ecm = sqrt( pow(24*7.+(7+12)*931.478,2.) - pow(Correl.momentumCM,2.) );
+	      pt[0] = -Correl.momC[0];
+	      pt[1] = -Correl.momC[1];
+	      pt[2] = -Correl.momC[2];
+	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
+	      //cout << Ecm << endl;
+	      double Ep = sqrt( pow(ppt,2.) + pow(7*931.478+4.63,2.) );
+	      double Et = Ecm-Ep;	    
+	      */	      
+
 	      et = sqrt(pow(931.478*12.,2)+pow(ppt,2));
 	      double vvt = ppt/et*pow(29.98,2);
 	      for (int i=0;i<3;i++) vt[i]=vvt/ppt*pt[i];
 	      ek = et - 12.*931.478;
-	      Ex_target = 23.877*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li;	      
+	      Ex_target = 24.19*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li;
+	      Ex_target = 24.2*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin+(14.908-2.424-14.949)+12*931.478;
+	      Ex_target = sqrt( pow(Ex_target,2.) - pow(ppt,2.) ) - 12*931.478;
+	      //cout << Ex_target << endl;
+	      //Ex_target = sqrt( pow(Et,2.)-pow(ppt,2.) ) - 12.*931.478;	      
 	      // cout << "made it to target energy C" << endl;
 	      //  cout << "target energy = " << Ex_target << endl;
 	      if(Correl.thetaCM > 0.0084)
-		Histo->Li7_theta_CM_12C->Fill(Correl.thetaCM*180./3.1415927,1./sin(Correl.thetaCM));
+		Histo->Li7_theta_CM_12C->Fill(Correl.thetaCM*180./3.1415927);//,1./sin(Correl.thetaCM));
+	      Histo->Li7_theta_reactCoM_12C->Fill(Correl.thetaReactCoM*180/3.14159);
 	      pt[0] = Correl.H3[0]->Mvect[0];
 	      pt[1] = Correl.H3[0]->Mvect[1];
 	      pt[2] = Correl.H3[0]->Mvect[2];
@@ -404,18 +624,19 @@ void det::corr_7Li()
 	    {
 	      pt[0] = -Correl.alpha[0]->Mvect[0] - Correl.H3[0]->Mvect[0];
 	      pt[1] = -Correl.alpha[0]->Mvect[1] - Correl.H3[0]->Mvect[1];
-	      pt[2] = 1489.16-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
+	      pt[2] = 1497.45-Correl.alpha[0]->Mvect[2] - Correl.H3[0]->Mvect[2];
 	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
 	      
 	      et = sqrt(pow(931.478*27.,2)+pow(ppt,2));
 	      double vvt = ppt/et*pow(29.98,2);
 	      for (int i=0;i<3;i++) vt[i]=vvt/ppt*pt[i];
 	      ek = et - 27.*931.478;
-	      Ex_target = 23.887*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li; //need to fix first number 12/2015      
+	      Ex_target = 24.2*7.-Correl.alpha[0]->Ekin-Correl.H3[0]->Ekin-ek-Q7Li; //need to fix first number 12/2015      
 	      // cout << "made it to target energy C" << endl;
 	      //  cout << "target energy = " << Ex_target << endl;
 	      if(Correl.thetaCM > 0.0084)
-		Histo->Li7_theta_CM_27Al->Fill(Correl.thetaCM*180./3.1415927,1./sin(Correl.thetaCM));
+		Histo->Li7_theta_CM_27Al->Fill(Correl.thetaCM*180./3.1415927);//,1./sin(Correl.thetaCM));
+	      Histo->Li7_theta_reactCoM_27Al->Fill(Correl.thetaReactCoM*180/3.14159);
 	      pt[0] = Correl.H3[0]->Mvect[0];
 	      pt[1] = Correl.H3[0]->Mvect[1];
 	      pt[2] = Correl.H3[0]->Mvect[2];
@@ -453,31 +674,16 @@ void det::corr_7Li()
       if(cosBeta<-0.5)Histo->Ex7Li_L1->Fill(Ex);
       if(cosBeta>-0.5&&cosBeta<0.5)Histo->Ex7Li_T->Fill(Ex);
 
-      if(target_no==1)
-	{
-	  if(useful==1)Histo->Ex7Li_tRaS->Fill(Ex);
-	  if(useful==2)Histo->Ex7Li_aRtS->Fill(Ex);
-	  if(useful==3)Histo->Ex7Li_taR->Fill(Ex);
-	  if(useful==4)Histo->Ex7Li_taS->Fill(Ex);
-	}
+      //if(target_no==1)
+      //{
+      if(useful==1)Histo->Ex7Li_tRaS->Fill(Ex);
+      if(useful==2)Histo->Ex7Li_aRtS->Fill(Ex);
+      if(useful==3)Histo->Ex7Li_taR->Fill(Ex);
+      if(useful==4)Histo->Ex7Li_taS->Fill(Ex);
+      //}
 
       if(Ex > 4 && Ex <5)//gating on "ground state" peak and 7/2- state of 7Li
 	{
-	  /*	  
-	  ptr[0]=Correl.H3[0]->MomCM[0];
-	  ptr[1]=Correl.H3[0]->MomCM[1];
-	  ptr[2]=Correl.H3[0]->MomCM[2];
-	  PTR2 = pow(ptr[0],2)+pow(ptr[1],2)+pow(ptr[2],2);
-	  etr = sqrt(pow(931.478*3,2)+PTR2);
-      
-	  cosBeta = ptr[2]/sqrt(PTR2);
-
-	  pa[0]=Correl.alpha[0]->MomCM[0];
-	  pa[1]=Correl.alpha[0]->MomCM[1];
-	  pa[2]=Correl.alpha[0]->MomCM[2];
-	  PA2 = pow(pa[0],2)+pow(pa[1],2)+pow(pa[2],2);
-	  ea = sqrt(pow(931.478*4,2)+PA2);
-	  */
 
 	  for(int i=0;i<3;i++)
 	    {
@@ -516,19 +722,19 @@ void det::corr_7Li()
 		  if(please==1)Histo->cosPsi_Chi_9Be_Rus->Fill(cosPsi,chi);
 		  if(please==2)Histo->cosPsi_Chi_9Be_S2->Fill(cosPsi,chi);
 		  if(please==3)Histo->cosPsi_Chi_9Be_RusS2->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927<3)
+		  if(Correl.thetaReactCoM*180./3.1415927<5)
 		    Histo->cosPsi_Chi_9Be_small_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>3&&Correl.thetaCM*180./3.1415927<7)
+		  if(Correl.thetaReactCoM*180./3.1415927>5&&Correl.thetaReactCoM*180./3.1415927<15)
 		    Histo->cosPsi_Chi_9Be_mid_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>7)
+		  if(Correl.thetaReactCoM*180./3.1415927>15)
 		    Histo->cosPsi_Chi_9Be_large_angle->Fill(cosPsi,chi);
 		  Histo->chi_9Be->Fill(chi);
 		  
 		  
 		}
-	      if(cosBeta>0.5){Histo->ExTarget_9Be_L2->Fill(Ex_target);Histo->calib_diag1->Fill(please);}
-	      if(cosBeta<-0.5){Histo->ExTarget_9Be_L1->Fill(Ex_target);Histo->calib_diag2->Fill(please);}
-	      if(cosBeta>-0.5&&cosBeta<0.5){Histo->ExTarget_9Be_T->Fill(Ex_target);Histo->calib_diag3->Fill(please);}
+	      //if(cosBeta>0.5){Histo->ExTarget_9Be_L2->Fill(Ex_target);Histo->calib_diag1->Fill(please);}
+	      //if(cosBeta<-0.5){Histo->ExTarget_9Be_L1->Fill(Ex_target);Histo->calib_diag2->Fill(please);}
+	      //if(cosBeta>-0.5&&cosBeta<0.5){Histo->ExTarget_9Be_T->Fill(Ex_target);Histo->calib_diag3->Fill(please);}
 
 	      if(useful==1)Histo->ExTarget_9Be_tRaS->Fill(Ex_target);
 	      if(useful==2)Histo->ExTarget_9Be_aRtS->Fill(Ex_target);
@@ -546,21 +752,25 @@ void det::corr_7Li()
 		{
 		  Histo->cosPsi_Chi_12C->Fill(cosPsi,chi);
 		  Histo->cosPsi_12C->Fill(cosPsi);
-		  if(Correl.thetaCM*180./3.1415927<3)
+		  if(Correl.thetaReactCoM*180./3.1415927<5)
 		    Histo->cosPsi_Chi_12C_small_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>3&&Correl.thetaCM*180./3.1415927<8)
+		  if(Correl.thetaReactCoM*180./3.1415927>5&&Correl.thetaReactCoM*180./3.1415927<15)
 		    Histo->cosPsi_Chi_12C_mid_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>8)
+		  if(Correl.thetaReactCoM*180./3.1415927>15)
 		    Histo->cosPsi_Chi_12C_large_angle->Fill(cosPsi,chi);		
+		}
+	      if(Ex_target>3 && Ex_target<6)
+		{
+		  Histo->cosPsi_Chi_12C_2plus->Fill(cosPsi,chi);
 		}
 	      /*
 	      if(please==1)Histo->cosPsi_Chi_12C_Rus->Fill(cosPsi,chi);
 	      if(please==2)Histo->cosPsi_Chi_12C_S2->Fill(cosPsi,chi);
 	      if(please==3)Histo->cosPsi_Chi_12C_RusS2->Fill(cosPsi,chi);
 	      */
-	      if(cosBeta>0.5)Histo->ExTarget_12C_L2->Fill(Ex_target);
-	      if(cosBeta<-0.5)Histo->ExTarget_12C_L1->Fill(Ex_target);
-	      if(cosBeta>-0.5&&cosBeta<0.5)Histo->ExTarget_12C_T->Fill(Ex_target);
+	      // if(cosBeta>0.5)Histo->ExTarget_12C_L2->Fill(Ex_target);
+	      //if(cosBeta<-0.5)Histo->ExTarget_12C_L1->Fill(Ex_target);
+	      //if(cosBeta>-0.5&&cosBeta<0.5)Histo->ExTarget_12C_T->Fill(Ex_target);
 
 	    }
 
@@ -571,11 +781,11 @@ void det::corr_7Li()
 		{
 		  Histo->cosPsi_Chi_27Al->Fill(cosPsi,chi);
 		  Histo->cosPsi_27Al->Fill(cosPsi);
-		  if(Correl.thetaCM*180./3.1415927<3)
+		  if(Correl.thetaReactCoM*180./3.1415927<5)
 		    Histo->cosPsi_Chi_27Al_small_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>3 && Correl.thetaCM*180./3.1415927<8)
+		  if(Correl.thetaReactCoM*180./3.1415927>5 && Correl.thetaReactCoM*180./3.1415927<15)
 		    Histo->cosPsi_Chi_27Al_mid_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaCM*180./3.1415927>8)
+		  if(Correl.thetaReactCoM*180./3.1415927>15)
 		    Histo->cosPsi_Chi_27Al_large_angle->Fill(cosPsi,chi);
 		}
 	      /*
@@ -583,9 +793,9 @@ void det::corr_7Li()
 	      if(please==2)Histo->cosPsi_Chi_27Al_S2->Fill(cosPsi,chi);
 	      if(please==3)Histo->cosPsi_Chi_27Al_RusS2->Fill(cosPsi,chi);
 	      */
-	      if(cosBeta>0.5)Histo->ExTarget_27Al_L2->Fill(Ex_target);
-	      if(cosBeta<-0.5)Histo->ExTarget_27Al_L1->Fill(Ex_target);
-	      if(cosBeta>-0.5&&cosBeta<0.5)Histo->ExTarget_27Al_T->Fill(Ex_target);
+	      //if(cosBeta>0.5)Histo->ExTarget_27Al_L2->Fill(Ex_target);
+	      //if(cosBeta<-0.5)Histo->ExTarget_27Al_L1->Fill(Ex_target);
+	      //if(cosBeta>-0.5&&cosBeta<0.5)Histo->ExTarget_27Al_T->Fill(Ex_target);
 
 	    }
 	  

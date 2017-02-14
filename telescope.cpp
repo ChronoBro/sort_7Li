@@ -9,11 +9,18 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
   Histo = Histo0;
   ran = ran0;
 
-  
+  fitCal =0; // set this to 1 to use polynomial fit of block CsI calibrations (only set up for Russian atm)
 
-  Csicheck=1;
-  triton_shift = 0.6;//0.6;
-  triton_par1 = .98; //.98;
+
+
+
+  Csicheck=8;
+  triton_shift = 0.;//-1.5;//-2.2;//-0.8;//0.;//0.6; //remember you subtract this from the energy below
+  triton_par1 = 1.;//0.968;//1.; //.98;
+  alpha_quad=0.0000002;//000001;
+  triton_quad=0.00000025;
+  // cout << "alpha_quad = " << alpha_quad << endl;
+
 
   ostringstream outstring;
   string name;
@@ -21,6 +28,8 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
   string name2;
   int istart = -1;
   int iend = -1;
+  int blocksS2=8;
+  int blocksRus=8;
 
   if(id ==0)
     {
@@ -41,15 +50,57 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
       Pid[i] = new pid(name); 
     }
 
+  if(id==1)
+    {
+      for(int i = istart;i<iend;i++)
+	{
+	  outstring.str("");
+	  outstring << "blockCalCsid"<<i;
+	  name = outstring.str();
+	  blockCalCsid[i] = new blockCal(name,blocksS2); 
+	}
+      
+      for(int i = istart;i<iend;i++)
+	{
+	  outstring.str("");
+	  outstring << "blockCalCsiA"<<i;
+	  name = outstring.str();
+	  blockCalCsiA[i] = new blockCal(name,blocksS2); 
+	}
+    }
+
+  if(id==0)
+    {
+      for(int i = istart;i<iend;i++)
+	{
+	  outstring.str("");
+	  outstring << "blockCalCsid"<<i;
+	  name = outstring.str();
+	  blockCalCsid[i] = new blockCal(name,blocksRus); 
+	}
+      
+      for(int i = istart;i<iend;i++)
+	{
+	  outstring.str("");
+	  outstring << "blockCalCsiA"<<i;
+	  name = outstring.str();
+	  blockCalCsiA[i] = new blockCal(name,blocksRus); 
+	}
+    }
+
+
+
+
+
   //edit the loss files to make target dependent (want to load more loss classes then deal with target switching when loss is calculated)
 
   name="Hydrogen.loss"; //in 9Be
   Loss[0] = new CLoss(name,1.);
-  Loss[1] = new CLoss(name,2.);
+  Loss[1] = new CLoss(name,2);
   Loss[2] = new CLoss(name,3.);
   name="Helium.loss"; //in 9 Be
   Loss[3] = new CLoss(name,3.);
-  Loss[4] = new CLoss(name,4.);
+  Loss[4] = new CLoss(name,4);
   name = "Lithium.loss";// in 9 Be
   Loss[5] = new CLoss(name,6.);
   Loss[6] = new CLoss(name,7.);
@@ -82,30 +133,31 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
 
   name = "Hydrogen_Ta.loss";
   Loss[24] = new CLoss(name,1.);
-  Loss[25] = new CLoss(name,2.);
+  Loss[25] = new CLoss(name,2);
   Loss[26] = new CLoss(name,3.);
 
   name = "Helium_Ta.loss";
   Loss[27] = new CLoss(name,3.);
-  Loss[28] = new CLoss(name,4.);
+  Loss[28] = new CLoss(name,4.003);
 
   name = "Hydrogen_Si.loss";
   Loss[29] = new CLoss(name,1.);
-  Loss[30] = new CLoss(name,2.);
+  Loss[30] = new CLoss(name,2);
   Loss[31] = new CLoss(name,3.);
   
   name = "Helium_Si.loss";
   Loss[32] = new CLoss(name,3.);
-  Loss[33] = new CLoss(name,4.);
+  Loss[33] = new CLoss(name,4.003);
 
 
 
 
   //recalibrate depending on isotope the CsI (proton effect energy (MeV)-> Energy (MeV))
 
+
   name = "cal/7LiTAMU-H.cal"; //proton
   calCsi = new calibrate(1,32,name,1);
-  name = "cal/7LiTAMU-H.cal";//deuteron
+  name = "cal/7LiTAMU-d-CsI.cal";//deuteron
   calCsid = new calibrate(1,32,name,1);
   name = "cal/7LiTAMU-H.cal";//triton
   calCsit = new calibrate(1,32,name,1);
@@ -121,15 +173,15 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
 
 
 
-
+  
   name1 = "cal/posCorrect_slope_d.cal";
   name2 = "cal/posCorrect_intercept_d.cal";
-  blockCalCsid = new blockCal(name1, name2);
+  blockCalCsidRus = new blockCal(name1, name2);
 
   name1 = "cal/posCorrect_slope_a.cal";
   name2 = "cal/posCorrect_intercept_a.cal";
-  blockCalCsiA = new blockCal(name1, name2);
-
+  blockCalCsiARus = new blockCal(name1, name2);
+  
 
 
 
@@ -143,13 +195,35 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
       // cout << check_slope[i] <<"\t" << check_intercept[i] << endl;
     }
 
+  /*
+  for(int i=0;i<48;i++)
+    {
+      bins[i] = Pixels.TeleP[1].Location[0][i].theta-0.5;
+    }
+  bins[48] =Pixels.TeleP[0].Location[0][47].theta*180./;
+  for(int i=0;i<32;i++)
+    {
+      bins[i+49] =Pixels.TeleP[0].Location[0][i].theta-0.859375;
+    }
+  bins[81] =Pixels.TeleP[0].Location[0][31].theta+0.859375;
+
+  Histo->Li7_AbsElasXS->SetBins(82,bins);
+  */
+
+
 }
 //************************************************
 telescope::~telescope()
 {
-  for(int ii =0;ii<8;ii++)
+  for(int ii =0;ii<34;ii++)
     {
       delete Loss[ii];
+    }
+  for(int ii=0;ii<32;ii++)
+    {
+      delete Pid[ii];
+      delete blockCalCsid[ii];
+      delete blockCalCsiA[ii];
     }
 }
 //***********************************************
@@ -179,7 +253,7 @@ int telescope::Block(int ring)
       if(ring>=24&&ring<=29){return 5;}//cout << "really?" << endl;}
       if(ring>=30&&ring<=35){return 6;}//cout << "really?" << endl;}
       if(ring>=36&&ring<=41){return 7;}//cout << "really?" << endl;}
-      if(ring>=42&&ring<=47){return 8;}
+      if(ring>=42&&ring<=47){return 7;} // not much data for calibration here, might consider throwing these rings out of analysis
     }
 
 
@@ -206,6 +280,7 @@ void telescope::analyze(int event)
   
   phit = Pie.Order[0].strip;
   rhit = Ring.Order[0].strip;
+  CsIhit = Csi.Order[0].strip + 16*id;
 
   penergy = Pie.Order[0].energy;
   renergy = Ring.Order[0].energy;
@@ -215,29 +290,23 @@ void telescope::analyze(int event)
   if(id ==1)
     Histo->S2RingvPie->Fill(penergy,renergy);
 
-  if(id==1){if(rhit>=44)return;}
+  if(id==1){if(rhit>=44)return;if(phit==15||phit==0)return;}
 
-  theta = Pixels.getAngle(id,phit,rhit);
-  theta = theta + Pixels.deltatheta*(ran->Rndm()-0.5);
+  /* //gets rid of all the pies on the outeredge of the CsI in the Russian
   if(id==0)
     {
-      if(rhit<31)
-	theta_use = Pixels.thetaRus[rhit] + (Pixels.thetaRus[rhit+1]-Pixels.thetaRus[rhit])*(ran->Rndm()-0.5);
-      if(rhit==31)
-	theta_use = Pixels.thetaRus[rhit];
-      theta_use = theta_use*180./3.14159;
+      if(phit==1||phit==2||phit==5||phit==6||phit==9||phit==10||phit==13||phit==14||phit==17||phit==18)return;
+      if(phit==21||phit==22||phit==25||phit==26||phit==29||phit==30||phit==33||phit==34||phit==37||phit==38)return;
+      if(phit==41||phit==42||phit==45||phit==46||phit==49||phit==50||phit==53||phit==54||phit==57||phit==58)return;
+      if(phit==61||phit==62)return;
     }
-  if(id==1)
-    {
-      if(rhit<47)
-	theta_use = Pixels.thetaS2[rhit] + (Pixels.thetaS2[rhit+1]-Pixels.thetaS2[rhit])*(ran->Rndm()-0.5);
-      if(rhit==47)
-	theta_use = Pixels.thetaS2[rhit];
-      theta_use = Pixels.thetaS2[rhit]*180./3.14159;
-    }
-//calibrations correcting for position dependence were done with set angles (distance from target) so these angles are stored in Tele[3&4]
+  */
+
+  theta = Pixels.getAngle(id,phit,rhit);
+  //theta = theta + Pixels.deltatheta*(ran->Rndm()-0.5);
+  theta_use = theta*180./3.1415927;
   phi = Pixels.phi;
-  phi = phi + Pixels.deltaphi*(ran->Rndm()-0.5); //correcting for pixels at center of sections, should put this somewhere else eventually
+  phi = phi+Pixels.deltaphi*(ran->Rndm()-0.5); //correcting for pixels at center of sections, should put this somewhere else eventually
   
   // cout << phi << " " << theta << endl;
   //cout << Pixels.deltaphi << " " << Pixels.deltatheta << endl;
@@ -251,31 +320,23 @@ void telescope::analyze(int event)
   float rperp = sqrt(pow(xhit,2.)+pow(yhit,2.));
 
  
-  /*
+
+  if(rperp<15&&id==0){cout << "bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" << endl;}//getting rid of "dead" layer
+
+  if(id==0&&rperp > 15.)
+    {
+      Histo->HitMap->Fill(-xhit,yhit);
+      //if(rhit > 30)Histo->RusPhi_gated->Fill(phi*180./3.1415927);
+    }
   if(id==1)
     {
-      //cout << "original theta " << theta << endl;
-      xhit -=2;
-      yhit +=1;
-      rperp = sqrt(pow(xhit,2.)+pow(yhit,2.));
-      theta = atan2(rperp,Pixels.targetdist[1]);
-      //cout << "new theta = " << theta << endl;
-    }	
-  */  
-	  
-  //  Histo->HitMap->Fill(-xhit,yhit);
-  //if(id==1){cout << "rperp = " << rperp << endl;}
-  if(rperp<15&&id==0){cout << "bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" << endl;}//getting rid of "dead" layer
-  //cout << Pie.Nstore << endl;
-  //cout << xhit << " " << yhit << endl;
-  if(id==0&&rperp > 15.)
-    Histo->HitMap->Fill(-xhit,yhit);
-  if(id==1)
-    Histo->HitMap1->Fill(-xhit,yhit);
-
+      Histo->HitMap1->Fill(-xhit,yhit);
+      Histo->RusPhi_gated->Fill(phi*180./3.1415927);
+    }
   xhit = theta*180/3.1415927*cos(phi);
   yhit = theta*180/3.1415927*sin(phi);
-  Histo->HitMap_perspective->Fill(-xhit,yhit);
+
+  //Histo->HitMap_perspective->Fill(-xhit,yhit);
 
    //cout << rperp << endl;
 
@@ -283,7 +344,7 @@ void telescope::analyze(int event)
 
 
 
-  CsIhit = Csi.Order[0].strip + 16*id;
+
   bool matched =0;
   
 
@@ -316,16 +377,20 @@ void telescope::analyze(int event)
       float help;
       float help2;
 
-      CsIenergy = Csi.Order[0].energyR;      
-      Sienergy = penergy;
+      CsIenergy = Csi.Order[0].energyR;
+      Sienergy = penergy;//renergy;//penergy;
+
+
       Histo->dEE[CsIhit]->Fill(CsIenergy,Sienergy);
       
       float energy = Csi.Order[0].energy;
    
-      int block = Block(iring);      
+      block = Block(iring);  
+      if(block==0)cout << "block error" << endl;
       //remember this currently only goes over russian
       if(CsIhit==Csicheck)
 	{
+	  Histo->dEEtest->Fill(CsIenergy,Sienergy);
 	  if(iring==1||iring==4)Histo->TSi->Fill(CsIenergy,Csi.Order[0].time);
 	  if(block==1)//&&Pie.Order[0].time>4150&&Pie.Order[0].time<4250)
 	    {Histo->ECsIblock_raw1->Fill(CsIenergy);}
@@ -338,13 +403,13 @@ void telescope::analyze(int event)
 	  if(block==5)
 	    {Histo->ECsIblock_raw5->Fill(CsIenergy);}
 	  if(block==6)
-	    {Histo->ECsIblock_raw6->Fill(CsIenergy);Histo->dEEtest->Fill(CsIenergy,Sienergy);}
+	    {Histo->ECsIblock_raw6->Fill(CsIenergy);}
 	  if(block==7)
 	    {Histo->ECsIblock_raw7->Fill(CsIenergy);}
 	  if(block==8)
 	    {Histo->ECsIblock_raw8->Fill(CsIenergy);}
-	  if(id==1)
-	    {Histo->CsIRings[iring]->Fill(CsIenergy);}
+	  // if(id==1)
+	  Histo->CsIRings[iring]->Fill(CsIenergy);
 	  Histo->ECsI_raw_all->Fill(CsIenergy);
 	}
 
@@ -355,87 +420,52 @@ void telescope::analyze(int event)
       //use this for testing calibrations
       if(CsIhit==Csicheck)
 	{
-	  //energy = 0;
-	  energy = blockCalCsiA->getE(CsIhit,CsIenergy,theta_use);
-	  //cout << blockCalCsiA->Eslope_quad[Csicheck] << endl;
-	  //cout << blockCalCsiA->Eslope_slope[Csicheck] << endl;
-	  //theta_use=3.0;
-	  // help = 0.*pow(theta_use,2.)+0.000382413*theta_use+0.0311329;
-	  //help2 = -0.15158*theta_use+2.45035;
-	  // help = 0.0409;
-	  //help2 = 1.8148;
-	  //energy = help*CsIenergy+help2;
+
+	  //cout << phit << endl;
+	  //if(block>4)  
+	  energy = blockCalCsidRus->getE(CsIenergy+ran->Rndm(), CsIhit, theta_use);
+	  //cout << "Calslope new = " << blockCalCsiARus->calSlope << "\t" << "CalInt new = " << blockCalCsiARus->calInt << endl;
+	   
+	  
+	  //if(block<=4)
+	  // energy = blockCalCsid[CsIhit]->getE(CsIenergy+ran->Rndm(), block);
+	  //cout << "Calslope old = " << blockCalCsiA[CsIhit]->calSlope << "\t" << "CalInt old = " << blockCalCsiA[CsIhit]->calInt << endl;
+	    
+	  //if(block==1)energy = 0.04496*(CsIenergy+ran->Rndm())-5.05200;
+
 	  if(block==1)Histo->ECsIblock1->Fill(energy);
-
-	  //theta_use=3;
-	  //help = -0.00002067*pow(theta_use,2.)-0.00046585*theta_use+0.04038977;
-	  //help2 = -0.4707*theta_use+4.704;
-	  //energy = help*CsIenergy+help2;
-
 	  if(block==2){Histo->ECsIblock2->Fill(energy);}
 	  if(block==3){Histo->ECsIblock3->Fill(energy);}
 	  if(block==4){Histo->ECsIblock4->Fill(energy);}
 	  if(block==5){Histo->ECsIblock5->Fill(energy);}
 	  if(block==6){Histo->ECsIblock6->Fill(energy);}
 	  if(block==7){Histo->ECsIblock7->Fill(energy);}
-	  if(block==8)Histo->ECsIblock8->Fill(energy);
+	  if(block==8){Histo->ECsIblock8->Fill(energy);}
+
+	  //  if(phit==20)
+	  // {
+	  if(block==1){Histo->ESiblock1->Fill(Sienergy);}
+	  if(block==2){Histo->ESiblock2->Fill(Sienergy);}
+	  if(block==3){Histo->ESiblock3->Fill(Sienergy);}
+	  if(block==4){Histo->ESiblock4->Fill(Sienergy);}
+	  if(block==5){Histo->ESiblock5->Fill(Sienergy);}
+	  if(block==6){Histo->ESiblock6->Fill(Sienergy);}
+	  if(block==7){Histo->ESiblock7->Fill(Sienergy);}
+	  if(block==8){Histo->ESiblock8->Fill(Sienergy);}
+	  // }
 	}
       
-      /*
-	  float thick;
-	  float Ein=0;
-	  float Ekin=0;
-	  int please;
-	  float sumEnergy = energy +Sienergy;
 
-	  //can add back in Tantalum loss here with appropriate loss file
-
-	  float thickTa = 13.8/cos(theta);
-	  float deadlayer = 5.8/cos(theta); // mg/cm^2 11.606 = 50 um dead layer of Si
-	  
-
-      if(CsIhit==Csicheck)
-	{
-	
-	     
-	      Ein = Loss[30]->getEin(sumEnergy,deadlayer); //change these depending on calibration beams
-	      Ein = Loss[25]->getEin(Ein,thickTa);
-	      Histo->ECsI_all_inc->Fill(Ein);
-	    
-	      //if(Z==2)
-	      //	{
-	      // Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);
-	      // Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-	      //  Histo->ECsI_all_inc->Fill(Ein);
-	      //	}
-	}
-
-*/
       
       bool stat = Pid[CsIhit]->getPID(CsIenergy,Sienergy);
       if (!stat) return;
-
-      //testing to see if deuterons are being included accidentally
-      //if i'm going to use a file for all this I should open it in the constructor to call only once
       
+      int Z = 0;
+      Z= Pid[CsIhit]->Z;
+      int A = 0;
+      A = Pid[CsIhit]->A;
 
-
-      help = Sienergy;
-      help2 = check_intercept[CsIhit]-check_slope[CsIhit]*CsIenergy;
-      //if(CsIenergy>1000&&help<help2){cout << "deuteron contamination in de_E=CsI-" << CsIhit << endl;return;}
-      
-
-     
-
-
-      
-
-      
-
-
-      
-      int Z = Pid[CsIhit]->Z;
-      int A = Pid[CsIhit]->A;
+      if(A==7)Histo->HitMap_perspective->Fill(-xhit,yhit);
       
       if (Z > 0 && A >0)
 	{
@@ -445,14 +475,25 @@ void telescope::analyze(int event)
 	      if(A ==2)
 		{
 		  energy = calCsid->getEnergy(0,CsIhit,CsIenergy+ran->Rndm());
-		  energy = blockCalCsid->getE(CsIhit,CsIenergy+ran->Rndm(),theta_use);
+		  energy = blockCalCsid[CsIhit]->getE(CsIenergy+ran->Rndm(),block);
+
+
+		  if(id==0&&fitCal==1)
+		  {
+		   energy = blockCalCsidRus->getE(CsIenergy+ran->Rndm(),CsIhit,theta_use);
+		  }
 		}
 	      //CsIenergy= raw channel number
 	      if(A ==3)
 		{
 		  energy = calCsit->getEnergy(0,CsIhit,CsIenergy+ran->Rndm()); //fix this
 		  //Histo->dEE_ta[CsIhit]->Fill(CsIenergy,Sienergy); //will want to get rid of this eventually		  
-		  energy=triton_par1*blockCalCsid->getE(CsIhit,CsIenergy+ran->Rndm(),theta_use)-triton_shift;
+		  energy=triton_par1*blockCalCsid[CsIhit]->getE(CsIenergy+ran->Rndm(),block)-triton_shift+triton_quad*pow(CsIenergy,2.);
+		  if(id==0&&fitCal==1)
+		  {
+		  energy=triton_par1*blockCalCsidRus->getE(CsIenergy+ran->Rndm(),CsIhit,theta_use)-triton_shift;
+		  }
+
 		}
 	    }
 	  else if(Z == 2)
@@ -462,8 +503,13 @@ void telescope::analyze(int event)
 	      else if(A ==4)
 		{
 		  energy = calCsiA->getEnergy(0,CsIhit,CsIenergy+ran->Rndm()); //fix this
-		  //Histo->dEE_ta[CsIhit]->Fill(CsIenergy,Sienergy); //will want to get rid of this eventually (slows stuff down)
-		  energy=blockCalCsiA->getE(CsIhit,CsIenergy+ran->Rndm(),theta_use);
+		  // Histo->dEE_ta[CsIhit]->Fill(CsIenergy,Sienergy); //will want to get rid of this eventually (slows stuff down)
+		  // energy=blockCalCsiA[CsIhit]->getE(CsIenergy+ran->Rndm(),block);
+		  energy=blockCalCsiA[CsIhit]->getE(CsIenergy+ran->Rndm(),block)+alpha_quad*pow(CsIenergy,2.);		
+		  if(id==0&&fitCal==1)
+		  {
+		    energy=blockCalCsiARus->getE(CsIenergy+ran->Rndm(),CsIhit,theta_use);
+		  }
 		}
 		  else 
 		{
@@ -500,147 +546,200 @@ void telescope::analyze(int event)
 	  //can add back in Tantalum loss here with appropriate loss file
 
 	  float thickTa = 13.8/cos(theta);
-	  float deadlayer =  5.8/cos(theta); // mg/cm^2 11.606 = 50 um dead layer of Si
+    	  float deadlayer = 0./cos(theta); // mg/cm^2 11.606 = 50 um dead layer of Si
+	  // float thickSi = 121.863/cos(theta);
+
+	  
+	  if(id==0)
+	    {
+	      float thickSi = 121.863/cos(theta);
+	      if(Z==1)
+		{
+		  sumEnergy = Loss[28+ipid]->getEin(energy,thickSi);
+		  //		  sumEnergy = energy + Sienergy;
+		}
+	      if(Z==2)
+		{
+		  sumEnergy = Loss[29+ipid]->getEin(energy,thickSi);
+		  //sumEnergy = energy + Sienergy;
+		}
+	    }
+
+	  /*
+	  if(id==1)
+	    {
+	      float thickSi = 121.863/cos(theta)
+	      if(Z==1)
+		{
+		  sumEnergy = Loss[28+ipid]->getEin(energy,thickSi);
+		  //		  sumEnergy = energy + Sienergy;
+		}
+	      if(Z==2)
+		{
+		  sumEnergy = Loss[29+ipid]->getEin(energy,thickSi);
+		  //sumEnergy = energy + Sienergy;
+		}
+	    }
+	  */
 	  
 
-      if(CsIhit==Csicheck)
-	{
+	  if(CsIhit==Csicheck)
+	    {
 	
+	      Histo->ECsI_sumenergy->Fill(sumEnergy);
+	      // cout << sumEnergy/A << endl;
+	      if(Z==1)
+	      	{
+		  // if(id==0)Ein = Loss[30]->getEin(sumEnergy,deadlayer); //change these depending on calibration beams
+		  // cout << energy << endl;
+		  Ein=sumEnergy;// energy = blockCalCsid[CsIhit]->getEnergy(0,CsIhit,CsIenergy+ran->Rndm());
+		  Ein = Loss[25]->getEin(Ein,thickTa);
+		  Histo->ECsI_Ta_loss->Fill(Ein-sumEnergy);
+		  Histo->ECsI_all_inc->Fill(Ein);
+		}
+	      if(Z==2)
+		{
+		  // if(id==0)Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);
+		  Ein=sumEnergy;
+		  Ein = Loss[ipid+24]->getEin(Ein,thickTa);
+		  Histo->ECsI_Ta_loss->Fill(Ein-sumEnergy);
+		  //cout << Ein-sumEnergy << endl;
+		  Histo->ECsI_all_inc->Fill(Ein);
+		}
+	    }
+
+
+
+
+	  //if(Z==2 && A==4)
+	  //	{
+	  //	  cout << Ein << endl;
+	  //	}
+
+      if(target==1)
+	{
+	  thick = 9.472/2./cos(theta); // target thickness !!make target dependent 
+	  // deal with loss target dependence too! something like (if  target==n then use Loss[ipid+(n-1)*7)
+
+	      
 	  if(Z==1)
 	    {
-	      Ein = Loss[30]->getEin(sumEnergy,deadlayer); //change these depending on calibration beams
-	      Ein = Loss[25]->getEin(Ein,thickTa);
-	      Histo->ECsI_all_inc->Fill(Ein);
+	      if(id==0)
+		{
+		  Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+23]->getEin(Ein,thickTa);
+		}
+	      else
+		{		 
+		  Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
+		}
+
+	      Ein = Loss[ipid-1]->getEin(Ein,thick);
+
 	    }
 	  if(Z==2)
 	    {
-	      Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);
-	      Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-	      Histo->ECsI_all_inc->Fill(Ein);
-	    }
-	}
-
-
-	  if(target==1)
-	    {
-	      thick = 9.472/2./cos(theta); // target thickness !!make target dependent 
-	                                     // deal with loss target dependence too! something like (if                                                 target==n then use Loss[ipid+(n-1)*7)
-
-	      
-	      if(Z==1)
+	      if(id==0)
 		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+23]->getEin(Ein,thickTa);
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
-		    }
-
-		  Ein = Loss[ipid-1]->getEin(Ein,thick);
-
+		  Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+24]->getEin(Ein,thickTa);
 		}
-	      if(Z==2)
-		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
-		    }
+	      else
+		{		 
+		  Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
+		}
 
 		  
-		  Ein = Loss[ipid]->getEin(Ein,thick);
-		}
-	      if(Ein==0)cout << "ERROR in Target Energy Addition" << endl;
-	      Ekin = Ein;
+	      Ein = Loss[ipid]->getEin(Ein,thick);
 	    }
+	  if(Ein==0 && A!=7)cout << "ERROR in Target Energy Addition" << endl;
+	  Ekin = Ein;
+	}
 
-	  if(target==2)
+      else if(target==2)
+	{
+	  thick = 9.6/2./cos(theta);
+	  please  = ipid+(target-1)*8;
+
+	  if(Z==1)
 	    {
-	      thick = 9.6/2./cos(theta);
-	      please  = ipid+(target-1)*8;
-
-	      if(Z==1)
+	      if(id==0)
 		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+23]->getEin(Ein,thickTa);
+		  Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+23]->getEin(Ein,thickTa);
 		      
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
+		}
+	      else
+		{		 
+		  Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
 		      
-		    }
-		  Ein = Loss[please-1]->getEin(Ein,thick);
 		}
-	      if(Z==2)
-		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
-		    }
-
-		  Ein = Loss[please]->getEin(Ein,thick);
-		}
-
-	      Ekin = Ein;
+	      Ein = Loss[please-1]->getEin(Ein,thick);
 	    }
-
-	  if(target==3)
+	  if(Z==2)
 	    {
-	      thick = 10.376/2./cos(theta);
-
-	      please  = ipid+(target-1)*8;
-
-	      if(Z==1)
+	      if(id==0)
 		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+23]->getEin(Ein,thickTa);
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
-		    }
-
-		  Ein = Loss[please-1]->getEin(Ein,thick);
+		  Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+24]->getEin(Ein,thickTa);
 		}
-	      if(Z==2)
-		{
-		  if(id==0)
-		    {
-		      Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-		    }
-		  else
-		    {		 
-		      Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
-		    }
-
-		  Ein = Loss[please]->getEin(Ein,thick);
+	      else
+		{		 
+		  Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
 		}
 
-	      Ekin = Ein;
+	      Ein = Loss[please]->getEin(Ein,thick);
 	    }
 
-	  
+	  Ekin = Ein;
+	}
 
+      else if(target==3)
+	{
+	  thick = 10.376/2./cos(theta);
+
+	  please  = ipid+(target-1)*8;
+
+	  if(Z==1)
+	    {
+	      if(id==0)
+		{
+		  Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+23]->getEin(Ein,thickTa);
+		}
+	      else
+		{		 
+		  Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
+		}
+
+	      Ein = Loss[please-1]->getEin(Ein,thick);
+	    }
+	  if(Z==2)
+	    {
+	      if(id==0)
+		{
+		  Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
+		  Ein = Loss[ipid+24]->getEin(Ein,thickTa);
+		}
+	      else
+		{		 
+		  Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
+		}
+
+	      Ein = Loss[please]->getEin(Ein,thick);
+	    }
+
+	  Ekin = Ein;
+	}
+      else 
+	{
+	  Ekin = Ein;
+	}
+
+      //if(A==7)Histo->Li7_AbsElasXS->Fill(theta);      
+      
 	  
-	  Solution[Nsolution].energy = energy;
+          Solution[Nsolution].energy = energy;
 	  Solution[Nsolution].energyR = Csi.Order[0].energyR;
 	  Solution[Nsolution].denergy = Sienergy;
 	  Solution[Nsolution].ipie = ipie;
@@ -817,11 +916,8 @@ int telescope::multiHitCsi()
       
 
 
-
 	  int Z = Pid[CsIhit]->Z;
 	  int A = Pid[CsIhit]->A;
-
-
 
 
 
@@ -829,11 +925,13 @@ int telescope::multiHitCsi()
 	  int ipie = Solution[ii].ipie;
 	  int iring = Solution[ii].iring;
 
-	  if(id==1){if(iring>=44)return 0;}	  
+	  block = Block(iring);
+
+	  if(id==1){if(iring>=44)return 0;if(ipie==15||ipie==0)return 0;}	  
 
 	  theta = Pixels.getAngle(id,ipie,iring);
-	  theta = theta+Pixels.deltatheta*(ran->Rndm()-0.5);
-	  float theta_use = theta*180./3.1415927;
+	  //theta = theta+Pixels.deltatheta*(ran->Rndm()-0.5);
+	  theta_use = theta*180./3.1415927;
 	  phi = Pixels.phi;
 	  phi = phi + Pixels.deltaphi*(ran->Rndm()-0.5);
 
@@ -845,21 +943,6 @@ int telescope::multiHitCsi()
 	  double z = Pixels.r*cos(theta);
 	  float rperp = sqrt(pow(xhit,2.)+pow(yhit,2.));
 
-	  /*
-	  if(id==1)
-	    {
-	      //cout << " original theta = " << theta << endl;
-	      xhit -=2;
-	      yhit +=1;
-	      rperp = sqrt(pow(xhit,2.)+pow(yhit,2.));
-	      theta = atan2(rperp,Pixels.targetdist[1]);
-	      //	      cout << "new theta = " << theta << endl;
-	    }	 
-	  */ 
-	  
-	  //if(rperp<15.&&id==0){cout << "yay" << endl;return 0;} //use this to get rid of dead layer crap
-
-	  // Histo->HitMap->Fill(-xhit,yhit);
 
 	   if(id==0)
 	   Histo->HitMap->Fill(-xhit,yhit);
@@ -868,7 +951,10 @@ int telescope::multiHitCsi()
 
       //I want to look at position dependence, should only really worry about it with single hit data since calibrations are mostly single hit
 	   
+	   xhit = theta*180/3.1415927*cos(phi);
+	   yhit = theta*180/3.1415927*sin(phi);
 
+	   if(A==7)Histo->HitMap_perspective->Fill(-xhit,yhit);
 
 	  if(Z >0 && A>0)
 	    {
@@ -879,7 +965,11 @@ int telescope::multiHitCsi()
 		  if(A ==2)
 		    {
 		      energy[icsi] = calCsid->getEnergy(0,CsIhit,energyR[icsi]);
-		      energy[icsi]=blockCalCsid->getE(CsIhit,energyR[icsi]+ran->Rndm(),theta_use);
+		      energy[icsi]=blockCalCsid[CsIhit]->getE(energyR[icsi]+ran->Rndm(),block);
+		      if(id==0&&fitCal==1)
+		      {
+		      energy[icsi]=blockCalCsidRus->getE(energyR[icsi]+ran->Rndm(),CsIhit,theta_use);
+		      }
 		    }
 	    
 	    
@@ -888,10 +978,13 @@ int telescope::multiHitCsi()
 		    {
 		      energy[icsi] = calCsit->getEnergy(0,CsIhit,energyR[icsi]);
 		      //Histo->dEE_ta[CsIhit]->Fill(energyR[icsi],Solution[ii].denergy); // will want to get rid of this eventually (slows stuff down)
-		      energy[icsi]=triton_par1*blockCalCsid->getE(CsIhit,energyR[icsi]+ran->Rndm(),theta_use)-triton_shift;
+		      energy[icsi]=triton_par1*blockCalCsid[CsIhit]->getE(energyR[icsi]+ran->Rndm(),block)-triton_shift+triton_quad*pow(energyR[icsi],2.);
+		      if(id==0&&fitCal==1)
+		      {
+		      energy[icsi]=triton_par1*blockCalCsidRus->getE(energyR[icsi]+ran->Rndm(),CsIhit,theta_use)-triton_shift;
+		      }
 		    }
-		}
-	      
+		}	      
 	      else if(Z == 2)
 		{
 		  if(A==3)
@@ -902,7 +995,12 @@ int telescope::multiHitCsi()
 		    {
 		      energy[icsi] = calCsiA->getEnergy(0,CsIhit,energyR[icsi]);
 		      //Histo->dEE_ta[CsIhit]->Fill(energyR[icsi],Solution[ii].denergy);
-		      energy[icsi]=blockCalCsiA->getE(CsIhit,energyR[icsi]+ran->Rndm(),theta_use);
+		      // energy[icsi]=blockCalCsiA[CsIhit]->getE(energyR[icsi]+ran->Rndm(),block);
+		      energy[icsi]=blockCalCsiA[CsIhit]->getE(energyR[icsi]+ran->Rndm(),block)+alpha_quad*pow(energyR[icsi],2.);
+		      if(id==0&&fitCal==1)
+		      {
+		      energy[icsi]=blockCalCsiARus->getE(energyR[icsi]+ran->Rndm(),CsIhit,theta_use);
+		      }
 		    }
 		  else 
 		    {
@@ -952,7 +1050,25 @@ int telescope::multiHitCsi()
 
 
 	      float thickTa = 13.8/cos(theta);
-	      float deadlayer = 5.8/cos(theta); // mg/cm^2 11.606 = 50 um dead layer of Si
+	      float deadlayer = 5.8/cos(theta);//11.606/cos(theta); // mg/cm^2 11.606 = 50 um dead layer of Si
+	      float thickSi = 121.863/cos(theta);
+	      
+	      
+	      if(id==0)
+		{
+		  if(Z==1)
+		    {
+		      sumEnergy = Loss[28+ipid]->getEin(energy[icsi],thickSi);
+		      // sumEnergy = energy[icsi]+Solution[ii].denergy;
+		    }
+		  if(Z==2)
+		    {
+		      sumEnergy = Loss[29+ipid]->getEin(energy[icsi],thickSi);
+		      // sumEnergy = energy[icsi]+Solution[ii].denergy;
+		    }
+		}
+	      
+
 
 	  if(target==1)
 	    {
@@ -964,8 +1080,8 @@ int telescope::multiHitCsi()
 		{
 		  if(id==0)
 		    {
-		      Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+23]->getEin(Ein,thickTa);
+		      //Ein = Loss[ipid+28]->getEin(sumEnergy,deadlayer);		  
+		      Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
 		    }
 		  else
 		    {		 
@@ -979,8 +1095,8 @@ int telescope::multiHitCsi()
 		{
 		  if(id==0)
 		    {
-		      Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
-		      Ein = Loss[ipid+24]->getEin(Ein,thickTa);
+		      //Ein = Loss[ipid+29]->getEin(sumEnergy,deadlayer);		  
+		      Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
 		    }
 		  else
 		    {		 
@@ -990,7 +1106,7 @@ int telescope::multiHitCsi()
 		  
 		  Ein = Loss[ipid]->getEin(Ein,thick);
 		}
-	      if(Ein==0)cout << "ERROR in Target Energy Addition" << endl;
+	      if(Ein==0 && A!=7)cout << "ERROR in Target Energy Addition" << endl;
 	      Ekin = Ein;
 	    }
 
@@ -1068,73 +1184,7 @@ int telescope::multiHitCsi()
 	      Ekin = Ein;
 	    }
 
-	      /*
-	      if(target==1)
-		{
-		  thick = 9.472/2./cos(theta); // target thickness !!make target dependent 
-		  // deal with loss target dependence too! something like (if                                                 target==n then use Loss[ipid+(n-1)*7)
-		  
-		  
-		  if(Z==1)
-		    {
-		      // Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
-		      
-		      Ein = Loss[ipid-1]->getEin(sumEnergy,thick);
-		    }
-		  if(Z==2)
-		    {
-		      //  Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
-		      
-		      Ein = Loss[ipid]->getEin(sumEnergy,thick);
-		    }
-		  
-		  Ekin = Ein;
-		}
-	      
-	      if(target==2)
-		{
-		  thick = 9.6/2./cos(theta);
-		  please  = ipid+(target-1)*8;
-		  
-		  if(Z==1)
-		    {
-		      //   Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
-		      Ein = Loss[please-1]->getEin(sumEnergy,thick);
-		    }
-		  if(Z==2)
-		    {
-		      //   Ein = Loss[ipid+24]->getEin(sumEnergy,thickTa);
-		      Ein = Loss[please]->getEin(sumEnergy,thick);
-		    }
-		  
-		  Ekin = Ein;
-		}
-	      
-	      if(target==3)
-		{
-		  thick = 10.376/2./cos(theta);
-		  
-		  please  = ipid+(target-1)*8;
-		  
-		  if(Z==1)
-		    {
-		      //     Ein = Loss[ipid+23]->getEin(sumEnergy,thickTa);
-		      Ein = Loss[please-1]->getEin(sumEnergy,thick);
-		    }
-		  if(Z==2)
-		    {
-		      //Ein = Loss[ipid+24]->getEin(Ein,thickTa);
-		      Ein = Loss[please]->getEin(sumEnergy,thick);
-		    }
-		  
-		  Ekin = Ein;
-		}
-	      */      
-	      
-	      
-	      
-	      
-
+	   
 	      Solution[ii].energy = energy[icsi];
 	      Solution[ii].energyR = energyR[icsi];
 	      Solution[ii].icsi = Csi.Order[ii].strip;

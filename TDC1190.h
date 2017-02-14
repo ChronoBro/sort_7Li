@@ -47,5 +47,6 @@ class TDC1190
   int *  order;         //!< order of infor for a particular channel, 1st hit, etc
   tdcStuff * dataOut;  //!< array containg data from  readout channels
   int Ndata; //!< number of data stored
+  int notTDCerror;
 
 };

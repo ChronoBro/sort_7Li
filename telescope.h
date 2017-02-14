@@ -54,7 +54,9 @@ class telescope
   float theta;
   float phi;
   float triton_par1;
-
+  float alpha_quad;
+  float triton_quad;
+  double bins[82];
 
   int fhit;
   int bhit;
@@ -79,7 +81,9 @@ class telescope
   int Csicheck;
   float triton_shift;
   double theta_use;
-  
+  int block;
+ 
+
  private:
   TRandom * ran;
   histo * Histo;
@@ -97,7 +101,7 @@ class telescope
   int FrontHigh[4];
   int BackLow[4];
   int BackHigh[4];
-
+  int fitCal;
   pid  * Pid[32];
 
 
@@ -114,9 +118,12 @@ class telescope
 
   calibrate * calCsiBe7;
 
-  blockCal * blockCalCsid;
+  blockCal * blockCalCsid[32];
 
-  blockCal * blockCalCsiA;
+  blockCal * blockCalCsiA[32];
+
+  blockCal * blockCalCsidRus;
+  blockCal * blockCalCsiARus;
 
   float check_slope[32];
   float check_intercept[32];

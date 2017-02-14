@@ -107,17 +107,27 @@ histo::histo()
 
 
   dirCsItest->cd();
-  ECsIblock1 = new TH1I("ECsIblock1","",1000,0,100);  
-  ECsIblock2 = new TH1I("ECsIblock2","",1000,0,100);  
-  ECsIblock3 = new TH1I("ECsIblock3","",1000,0,100); 
-  ECsIblock4 = new TH1I("ECsIblock4","",1000,0,100); 
-  ECsIblock5 = new TH1I("ECsIblock5","",1000,0,100);  
-  ECsIblock6 = new TH1I("ECsIblock6","",1000,0,100);  
-  ECsIblock7 = new TH1I("ECsIblock7","",1000,0,100);  
-  ECsIblock8 = new TH1I("ECsIblock8","",1000,0,100);
-  ECsI_all_inc = new TH1I("ECsI_all_inc","",1000,0,100);
+  ECsIblock1 = new TH1I("ECsIblock1","",1500,0,150);  
+  ECsIblock2 = new TH1I("ECsIblock2","",1500,0,150);  
+  ECsIblock3 = new TH1I("ECsIblock3","",1500,0,150); 
+  ECsIblock4 = new TH1I("ECsIblock4","",1500,0,150); 
+  ECsIblock5 = new TH1I("ECsIblock5","",1500,0,150);  
+  ECsIblock6 = new TH1I("ECsIblock6","",1500,0,150);  
+  ECsIblock7 = new TH1I("ECsIblock7","",1500,0,150);  
+  ECsIblock8 = new TH1I("ECsIblock8","",1500,0,150);
+  ECsI_all_inc = new TH1I("ECsI_all_inc","",2000,0,200);
   ECsI_raw_all = new TH1I("ECsI_raw_all","",1024,0,4095);
-  
+  ECsI_sumenergy = new TH1I("ECsI_sumenergy","",1500,0,150);
+  ECsI_Ta_loss = new TH1I("ECsI_Ta_loss","",200,0,2);
+
+  ESiblock1 = new TH1I("ESiblock1","",300,0,30);
+  ESiblock2 = new TH1I("ESiblock2","",300,0,30);
+  ESiblock3 = new TH1I("ESiblock3","",300,0,30);
+  ESiblock4 = new TH1I("ESiblock4","",300,0,30);
+  ESiblock5 = new TH1I("ESiblock5","",300,0,30);
+  ESiblock6 = new TH1I("ESiblock6","",300,0,30);
+  ESiblock7 = new TH1I("ESiblock7","",300,0,30);
+  ESiblock8 = new TH1I("ESiblock8","",300,0,30);
 
   ECsIblock_raw1 = new TH1I("ECsIblock_raw1","",1024,0,4095);  
   ECsIblock_raw2 = new TH1I("ECsIblock_raw2","",1024,0,4095);  
@@ -333,11 +343,23 @@ histo::histo()
   E1E2ring->GetXaxis()->SetTitle("Pie 15");
   E1E2ring->GetYaxis()->SetTitle("Pie 16");
 
+  RusPhi_gated = new TH1I("RusPhi_gated","",64,0,360);
+
   RusPiesMult = new TH1I("RusPiesMult","",64,-0.5,63.5);
   RusRingsMult = new TH1I("RusRingsMult","",32,-0.5,31.5);
   HitMap = new TH2I("HitMap","",250,-50,50,250,-50,50); //Russian
   RusRingvPie = new TH2I("RusRingvPie","",1000,0,100,1000,0,100);
-
+  p21p22Raw = new TH1I("p21p22E","",1000,0,16000);
+  p22p21Raw = new TH1I("p22p21E","",1000,0,16000);
+  
+  RusPiesBlock1 = new TH1I("RusPiesBlock1","",4000,0,16000);
+  RusPiesBlock2 = new TH1I("RusPiesBlock2","",4000,0,16000);
+  RusPiesBlock3 = new TH1I("RusPiesBlock3","",4000,0,16000);
+  RusPiesBlock4 = new TH1I("RusPiesBlock4","",4000,0,16000);
+  RusPiesBlock5 = new TH1I("RusPiesBlock5","",4000,0,16000);
+  RusPiesBlock6 = new TH1I("RusPiesBlock6","",4000,0,16000);
+  RusPiesBlock7 = new TH1I("RusPiesBlock7","",4000,0,16000);
+  RusPiesBlock8 = new TH1I("RusPiesBlock8","",4000,0,16000);
 
 
   dirSsum->cd();
@@ -371,15 +393,16 @@ histo::histo()
 
 
   velCM7Li_ta = new TH1I("velCM7Li_ta","",200,0,10);
-  ExTarget_9Be = new TH1I("ExTarget_9Be","",720,-8,40);
+  ExTarget_9Be = new TH1I("ExTarget_9Be","",360,-8,15);
   cosPsi_Chi_9Be = new TH2F("cosPsi_Chi_9Be","",50,-1,1,90,0,360);
   cosPsi_Chi_12C = new TH2F("cosPsi_Chi_12C","",50,-1,1,90,0,360);
   cosPsi_Chi_27Al = new TH2F("cosPsi_Chi_27Al","",50,-1,1,90,0,360);
+  cosPsi_Chi_12C_2plus = new TH2F("cosPsi_Chi_12C_2plus","",50,-1,1,90,0,360);
   cosPsi_9Be = new TH1F("cosPsi_9Be","",50,-1,1);
   cosPsi_12C = new TH1F("cosPsi_12C","",50,-1,1);
   cosPsi_27Al = new TH1F("cosPsi_27Al","",50,-1,1);
-  ExTarget_C = new TH1I("ExTarget_C","",720,-8,40);
-  ExTarget_Al = new TH1I("ExTarget_Al","",720,-8,40);
+  ExTarget_C = new TH1I("ExTarget_C","",360,-8,15);
+  ExTarget_Al = new TH1I("ExTarget_Al","",360,-8,15);
 
   cosPsi_Chi_9Be_Rus = new TH2I("cosPsi_Chi_9Be_Rus","",50,-1,1,90,0,360);
   cosPsi_Chi_9Be_S2 = new TH2I("cosPsi_Chi_9Be_S2","",50,-1,1,90,0,360);
@@ -401,7 +424,7 @@ histo::histo()
 
 
  
-  /*
+  
   cosPsi_Chi_12C_Rus = new TH2I("cosPsi_Chi_12C_Rus","",50,-1,1,90,0,360);
   cosPsi_Chi_12C_S2 = new TH2I("cosPsi_Chi_12C_S2","",50,-1,1,90,0,360);
   cosPsi_Chi_12C_RusS2 = new TH2I("cosPsi_Chi_12C_RusS2","",50,-1,1,90,0,360); 
@@ -409,13 +432,25 @@ histo::histo()
   cosPsi_Chi_27Al_Rus = new TH2I("cosPsi_Chi_27Al_Rus","",50,-1,1,90,0,360);
   cosPsi_Chi_27Al_S2 = new TH2I("cosPsi_Chi_27Al_S2","",50,-1,1,90,0,360);
   cosPsi_Chi_27Al_RusS2 = new TH2I("cosPsi_Chi_27Al_RusS2","",50,-1,1,90,0,360);
-  */
+  
 
   Li7_theta_CM_9Be = new TH1F("Li7_theta_CM_9Be","",125,0,40);
   Li7_theta_CM_12C = new TH1F("Li7_theta_CM_12C","",125,0,40);
   Li7_theta_CM_27Al = new TH1F("Li7_theta_CM_27Al","",125,0,40);
 
+  elas7Li_9Be = new TH1F("7Li_elas_9Be","",125,0,40);
+  elas7Li_12C = new TH1F("7Li_elas_12C","",125,0,40);
+  elas7Li_27Al = new TH1F("7Li_elas_27Al","",125,0,40);
 
+  Li7_AbsElasXS = new TH1F("7Li_AbsElas9Be","",125,0,40);
+
+  mult7Li = new TH1F("mult7Li","",10,-0.5,9.5);
+
+
+  Li7_theta_reactCoM_9Be = new TH1F("Li7_theta_reactCoM_9Be","",125,0,40);
+  Li7_theta_reactCoM_12C = new TH1F("Li7_theta_reactCoM_12C","",125,0,40);
+  Li7_theta_reactCoM_27Al = new TH1F("Li7_theta_reactCoM_27Al","",125,0,40);
+  /*
   ExTarget_9Be_L2= new TH1I("ExTarget_9Be_L2","",480,-8,40);;
   ExTarget_9Be_L1= new TH1I("ExTarget_9Be_L1","",480,-8,40);;
   ExTarget_9Be_T= new TH1I("ExTarget_9Be_T","",480,-8,40);;
@@ -427,6 +462,7 @@ histo::histo()
   ExTarget_27Al_L2= new TH1I("ExTarget_27Al_L2","",480,-8,40);;
   ExTarget_27Al_L1= new TH1I("ExTarget_27Al_L1","",480,-8,40);;
   ExTarget_27Al_T= new TH1I("ExTarget_27Al_T","",480,-8,40);;
+  */
 
   gated_E_t_9Be = new TH1I("gated Triton p^2 9Be","",600,300,800);
   gated_E_t_12C = new TH1I("gated Triton p^2 12C","",600,300,800);
@@ -444,30 +480,50 @@ histo::histo()
 
   dir6Li->cd();
   cosPsi_10Be = new TH1F("cosPsi_10Be","",50,-1,1);
+  cosPsi_10Be_Rus = new TH1F("cosPsi_10Be_Rus","",50,-1,1);
+  cosPsi_10Be_S2 = new TH1F("cosPsi_10Be_S2","",50,-1,1);
+  cosPsi_10Be_RusS2 = new TH1F("cosPsi_10Be_RusS2","",50,-1,1);
+
+  cosPsi_Chi_10Be = new TH2F("cosPsi_Chi_10Be","",50,-1,1,90,0,360);
+  cosPsi_Chi_10Be_Rus = new TH2F("cosPsi_Chi_10Be_Rus","",50,-1,1,90,0,360);
+  cosPsi_Chi_10Be_S2 = new TH2F("cosPsi_Chi_10Be_S2","",50,-1,1,90,0,360);
+  cosPsi_Chi_10Be_RusS2 = new TH2F("cosPsi_Chi_10Be_RusS2","",50,-1,1,90,0,360);
+
   Ex6Li_da = new TH1I("Ex6Li_da","",300,0,15);
   Ex6Li_L1 = new TH1I("Ex6Li_L1","",300,0,15);
   Ex6Li_L2 = new TH1I("Ex6Li_L2","",300,0,15);
   Ex6Li_T = new TH1I("Ex6Li_T","",300,0,15);
   ExTarget_10Be = new TH1I("ExTarget_10Be","",720,-8,40);
 
+  Ex8Be = new TH1I("Ex8Be","",440,-2,20);
+  Ex8BeL1 = new TH1I("Ex8BeL1","",440,-2,20);
+  Ex8BeL2 = new TH1I("Ex8BeL2","",440,-2,20);
+  Ex8BeT = new TH1I("Ex8BeT","",440,-2,20);
+
+  ExTarget8Li = new TH1F("ExTarget8Li","",900,-8,80);
   
-  Ex6Li_Rus = new TH1I("Ex6Li_Rus","",300,0,15);
-  Ex6Li_S2 = new TH1I("Ex6Li_S2","",300,0,15);
-  Ex6Li_RusS2 = new TH1I("Ex6Li_RusS2","",300,0,15);
+  Ex6Li_Rus = new TH1I("Ex6Li_Rus","",600,0,15);
+  Ex6Li_S2 = new TH1I("Ex6Li_S2","",600,0,15);
+  Ex6Li_RusS2 = new TH1I("Ex6Li_RusS2","",600,0,15);
 
-  Ex6Li_RusT = new TH1I("Ex6Li_RusT","",300,0,15);
-  Ex6Li_RusL1 = new TH1I("Ex6Li_RusL1","",300,0,15);
-  Ex6Li_RusL2 = new TH1I("Ex6Li_RusL2","",300,0,15);
+  /*
+  Ex6Li_RusT = new TH1I("Ex6Li_RusT","",600,0,15);
+  Ex6Li_RusL1 = new TH1I("Ex6Li_RusL1","",600,0,15);
+  Ex6Li_RusL2 = new TH1I("Ex6Li_RusL2","",600,0,15);
 
-  Ex6Li_S2T = new TH1I("Ex6Li_S2T","",300,0,15);
-  Ex6Li_S2L1 = new TH1I("Ex6Li_S2L1","",300,0,15);
-  Ex6Li_S2L2 = new TH1I("Ex6Li_S2L2","",300,0,15);
+  Ex6Li_S2T = new TH1I("Ex6Li_S2T","",600,0,15);
+  Ex6Li_S2L1 = new TH1I("Ex6Li_S2L1","",600,0,15);
+  Ex6Li_S2L2 = new TH1I("Ex6Li_S2L2","",600,0,15);
 
-  Ex6Li_RusS2T = new TH1I("Ex6Li_RusS2T","",300,0,15);
-  Ex6Li_RusS2L1 = new TH1I("Ex6Li_RusS2L1","",300,0,15);
-  Ex6Li_RusS2L2 = new TH1I("Ex6Li_RusS2L2","",300,0,15);
-  
+  Ex6Li_RusS2T = new TH1I("Ex6Li_RusS2T","",600,0,15);
+  Ex6Li_RusS2L1 = new TH1I("Ex6Li_RusS2L1","",600,0,15);
+  Ex6Li_RusS2L2 = new TH1I("Ex6Li_RusS2L2","",600,0,15);
+  */  
 
+  TKE_H2 = new TH1I("TKE_H2","",1024,0,4095);
+  TKE_A = new TH1I("TKE_A","",1024,0,4095);
+  Li6_thetaCM = new TH1I("6Li_thetaCM","",125,0,45);
+  Li6velCM = new TH1I("6Li_velCM","",200,0,10);
 
 }
 //*********************************************

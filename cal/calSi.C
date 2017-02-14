@@ -1,0 +1,59 @@
+void calSi()
+{
+
+  //  ifstream data("inputGuess.dat");
+  ifstream data("S2Pies.dat");
+  if(!data.is_open())
+    {
+      cout << "NO DATA!" << endl;
+      return;
+    }
+  ifstream data2("S2Pies.cal.save");
+
+  ofstream fout("S2Pies.cal");
+  const int Nchans = 16;
+  const int itele = 0;
+
+  int tele,chan;
+
+  float peak1[Nchans] = {0.};
+  float peak2[Nchans] = {0.};
+
+
+  float slope[Nchans] = {0.};
+  float inter[Nchans] = {0.};
+
+
+  float Epeak1 = 3.182;
+  float Epeak2 = 5.148; //Weighted Average
+  
+  int j=0;
+
+  for(int i=0;i<Nchans;i++)
+    {
+      data2 >> tele >> chan >> slope[i] >> inter[i];
+    }
+
+
+
+  for(;;)
+    {
+      if(data.eof()) break;
+      data >> tele >> chan >> peak1[chan] >> peak2[chan];
+
+      slope[chan] = (Epeak2 - Epeak1)/(peak2[chan] - peak1[chan]);
+      inter[chan] = Epeak1 - slope[chan]*peak1[chan];
+      cout << itele << " " << chan << " " << slope[chan] << " " << inter[chan] << endl;  
+    }
+
+  for(i=0;i<Nchans;i++)
+    {
+      fout << itele << " " << i << " " << slope[i] << " " << inter[i] << endl; 
+    }
+
+
+  fout.close();
+
+
+  return;
+}

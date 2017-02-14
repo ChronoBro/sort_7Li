@@ -1,0 +1,14 @@
+void texascsical()
+{
+
+  ifstream in(texascsi.txt);
+  if(!in.is_Open())
+    {
+      cout << "No data!" << endl;
+      return;
+    }
+
+
+  return;
+
+}

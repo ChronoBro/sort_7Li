@@ -35,7 +35,7 @@ class det
 
   correl Correl;
   void corr_7Li();
-
+ 
 
   int Nalphat;
 
@@ -43,6 +43,7 @@ class det
 
   int N_IAS;
   int N7Li_ta;
+  int N7Li;
   float xg,yg,zg;
   float xL,yL,zL;
   float thetag,phig;

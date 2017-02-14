@@ -22,6 +22,7 @@ class CEinstein : public CKinematics
   float getKE(float pc,float mass);
   float transformMomentum(float* mom,float* vreference,float energyTot,
     float*momNew);
+  float * transformMom(float*mom,float * vreference, float energyTot, float *momNew);
   float gamma(float vel);
 };
 #endif 

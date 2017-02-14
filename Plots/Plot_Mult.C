@@ -1,0 +1,104 @@
+void Plot_Mult()
+{
+
+  gROOT->SetStyle("Plain");
+  gStyle->SetOptStat(0);
+  TStyle * Sty = (TStyle*)gROOT->FindObject("MyStyle");
+  if(!Sty)
+    {
+      Sty = new TStyle("MyStyle","MyStyle");
+    }
+  Sty->SetOptTitle(0);
+  Sty->SetOptStat(0);
+  //Sty->SetPalette(8,0);
+  Sty->SetCanvasColor(10);
+  Sty->SetCanvasBorderMode(0);
+  Sty->SetFrameLineWidth(3);
+  Sty->SetFrameFillColor(10);
+  Sty->SetPadColor(10);
+  Sty->SetPadTickX(1);
+  Sty->SetPadTickY(1);
+  Sty->SetPadBottomMargin(.17);
+  Sty->SetPadTopMargin(.03);
+  Sty->SetPadLeftMargin(.17);
+  Sty->SetPadRightMargin(.01);
+  Sty->SetHistLineWidth(3);
+  Sty->SetHistLineColor(kBlack);
+  Sty->SetFuncWidth(3);
+  Sty->SetFuncColor(kRed);
+  Sty->SetLineWidth(3);
+  Sty->SetLabelSize(0.06,"xyz");
+  Sty->SetLabelOffset(0.02,"y");
+  Sty->SetLabelOffset(0.02,"x");
+  Sty->SetLabelColor(kBlack,"xyz");
+  Sty->SetTitleSize(0.06,"xyz");
+  Sty->SetTitleOffset(1.3,"y");
+  Sty->SetTitleOffset(1.1,"x");
+  Sty->SetTitleFillColor(10);
+  Sty->SetTitleTextColor(kBlack);
+  Sty->SetTickLength(.03,"xz");
+  Sty->SetTickLength(.02,"y");
+  Sty->SetNdivisions(5,"x");
+  Sty->SetNdivisions(10,"yz");
+  Sty->SetEndErrorSize(0);
+  gROOT->SetStyle("MyStyle");
+  gROOT->ForceStyle();
+
+
+  float Maxs[48] ={0.};
+
+  TFile *in  = new TFile("/home/lithium7/unpacker/sort.root");
+  if(!in->IsOpen())
+    {
+      cout << "No data here..." << endl;
+      return;
+    }
+  gROOT->cd();
+
+  ostringstream outstring;
+  string name;
+
+  TCanvas *mycan1 = (TCanvas*)gROOT->FindObject("Mycan1");
+  if(!mycan1)
+    {
+      mycan1 = new TCanvas("Mycan1","Multiplicity",1200,900);
+      mycan1->Divide(3,2,0.000001,0.000001);
+    }
+
+
+  mycan1->cd(4);
+  TH1I *multRusCsI = (TH1I*)gROOT->FindObject("MRC");
+  if(!multRusCsI)
+    {
+      outstring.str("");
+      outstring << "CsI/CsISum/RusCsIMult"; //<< i; //for a for loop
+      name = outstring.str();
+
+      multRusCsI = (TH1I*)in->Get(name.c_str())->Clone("MRC");
+    }
+
+  multRusCsI->Draw();
+  multRusCsI->GetXaxis()->SetRangeUser(0,5);
+
+  mycan1->cd(5);
+  TH1I *multS2CsI = (TH1I*)gROOT->FindObject("MSC");
+  if(!multS2CsI)
+    {
+      multS2CsI = (TH1I*)in->Get("CsI/CsISum/S2CsIMult")->Clone("MSC");
+    }
+
+  multS2CsI->Draw();
+  multS2CsI->GetXaxis()->SetRangeUser(0,5);
+
+  mycan1->cd(6);
+  TH1I *multTotCsI = (TH1I*)gROOT->FindObject("MST");
+  if(!multTotCsI)
+    {
+      multTotCsI = (TH1I*)in->Get("CsI/CsISum/TotCsIMult")->Clone("MSC");
+    }
+
+  multTotCsI->Draw();
+  multTotCsI->GetXaxis()->SetRangeUser(0,5);
+
+  return;
+}

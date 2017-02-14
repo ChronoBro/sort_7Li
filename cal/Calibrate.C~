@@ -1,0 +1,28 @@
+void Calibrate()
+{
+
+
+  TCanavs *mycan1 = (TCanvas*)gROOT->FindObject("mycan1");
+  if(!mycan)
+    {
+      mycan1 = new TCanvas("mycan1","",800,800);
+      mycan1->Divide(4,4,0.0000001,0.0000001);
+    }
+
+  float energy1[2][32] = {0.};
+  float energy2[2][32] = {0.};
+  float energy3[2][32] = {0.};
+  float energy4[2][32] = {0.};
+  float energy5[2][32] = {0.};
+
+  float peak1[2][32] = {0.};
+  float peak2[2][32] = {0.};
+  float peak3[2][32] = {0.};
+  float peak4[2][32] = {0.};
+  float peak5[2][32] = {0.};
+
+
+
+
+  return;
+}

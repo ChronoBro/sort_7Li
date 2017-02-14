@@ -4,8 +4,8 @@
 pixels::pixels()
 {
 
-  targetdist[0] = 147.; // 149 //in mm for Russian
-  targetdist[1] =  360.;//358.; //in mm for S2
+  targetdist[0] =  149;//150.; //in mm for Russian
+  targetdist[1] =  354.;//358.; //in mm for S2
 
 
   //Zero the arrays
@@ -37,6 +37,8 @@ pixels::pixels()
 	  TeleP[0].Location[ipie][iring].z = targetdist[0];
 	  TeleP[0].Location[ipie][iring].theta = atan2(rrus,targetdist[0]);
 	  TeleP[0].Location[ipie][iring].deltatheta = atan2(15+(iring+1.)*0.859375,targetdist[0])-atan2(15+iring*0.859375,targetdist[0]);
+	  TeleP[0].Location[ipie][iring].steradian = 2*3.14159*(cos( atan2(rrus-0.859375,targetdist[0]) ) - cos( atan2(rrus+0.859375,targetdist[0]) ));
+
 	  if(ipie <16)
 	    {
 	      TeleP[0].Location[ipie][iring].phi = (2.8125+5.625*(15-(ipie)))*acos(-1)/180.;
@@ -62,7 +64,9 @@ pixels::pixels()
 	  double rs2 = 11.25+0.5*iring; //radius of each ring
 	  TeleP[1].Location[ipie][iring].z = targetdist[1];
 	  TeleP[1].Location[ipie][iring].theta = atan2(rs2,targetdist[1]);
-	  TeleP[1].Location[ipie][iring].deltatheta = atan2(11+(iring+1.)*0.859375,targetdist[1])-atan2(11+iring*0.859375,targetdist[1]);	 
+	  TeleP[1].Location[ipie][iring].deltatheta = atan2(11+(iring+1.)*0.859375,targetdist[1])-atan2(11+iring*0.859375,targetdist[1]);
+	  TeleP[0].Location[ipie][iring].steradian = 2*3.14159*(cos( atan2(rs2-0.5,targetdist[1]) ) - cos( atan2(rs2+0.5,targetdist[1]) ));
+	 
 	  if(ipie >=12)
 	    {
 	      TeleP[1].Location[ipie][iring].phi = (11.25+22.5*(ipie-12))*acos(-1)/180.;

@@ -91,19 +91,32 @@ class histo
   TH1I ** RusRingsC;
   TH1I ** RusRingsCLG;
 
+  TH1I * RusPhi_gated;
+
   TH2I * E1E2pie;
   TH2I * E1E2ring;
   TH2I * ERPCSum;
   TH2I * ERRCSum;
   TH2I * ESPCSum;
   TH2I * ESRCSum;
-
+  TH1I * p21p22Raw;
+  TH1I * p22p21Raw;
+  
   TH1I * RusPiesMult;
   TH1I * RusRingsMult;
   TH1I * S2PiesMult;
   TH1I * S2RingsMult;
   TH2I * RusRingvPie;
   TH2I * S2RingvPie;
+
+  TH1I * RusPiesBlock1;
+  TH1I * RusPiesBlock2;
+  TH1I * RusPiesBlock3;
+  TH1I * RusPiesBlock4;
+  TH1I * RusPiesBlock5;
+  TH1I * RusPiesBlock6;
+  TH1I * RusPiesBlock7;
+  TH1I * RusPiesBlock8;
 
 
   TH2I * HitMap;
@@ -119,6 +132,15 @@ class histo
   TH1I * ECsIblock6;
   TH1I * ECsIblock7;
   TH1I * ECsIblock8;
+
+  TH1I * ESiblock1;
+  TH1I * ESiblock2;
+  TH1I * ESiblock3;
+  TH1I * ESiblock4;
+  TH1I * ESiblock5;
+  TH1I * ESiblock6;
+  TH1I * ESiblock7;
+  TH1I * ESiblock8;
  
   TH1I * ECsIblock_raw1;
   TH1I * ECsIblock_raw2;
@@ -128,6 +150,9 @@ class histo
   TH1I * ECsIblock_raw6;
   TH1I * ECsIblock_raw7;
   TH1I * ECsIblock_raw8;
+
+  TH1I * ECsI_sumenergy;
+  TH1I * ECsI_Ta_loss;
   TH2I * TSi;
   TH2I * multPeakCheck;
 
@@ -174,6 +199,7 @@ class histo
   TH2F * cosPsi_Chi_9Be;
   TH2F * cosPsi_Chi_12C;
   TH2F * cosPsi_Chi_27Al;
+  TH2F * cosPsi_Chi_12C_2plus;
 
   TH2F * cosPsi_Chi_9Be_small_angle;
   TH2F * cosPsi_Chi_12C_small_angle;
@@ -187,7 +213,7 @@ class histo
   TH2F * cosPsi_Chi_12C_large_angle;
   TH2F * cosPsi_Chi_27Al_large_angle;
 
-
+  
   TH2I * cosPsi_Chi_9Be_Rus;  
   TH2I * cosPsi_Chi_9Be_S2;  
   TH2I * cosPsi_Chi_9Be_RusS2;
@@ -200,14 +226,20 @@ class histo
   TH2I * cosPsi_Chi_27Al_Rus; 
   TH2I * cosPsi_Chi_27Al_S2; 
   TH2I * cosPsi_Chi_27Al_RusS2;
+  
 
   TH1F * Li7_theta_CM_9Be;
   TH1F * Li7_theta_CM_12C;
   TH1F * Li7_theta_CM_27Al;
 
-  TH1I * ExTarget_9Be_L1;
-  TH1I * ExTarget_9Be_L2;
-  TH1I * ExTarget_9Be_T;
+  TH1F * Li7_theta_reactCoM_9Be;
+  TH1F * Li7_theta_reactCoM_12C;
+  TH1F * Li7_theta_reactCoM_27Al;
+  //TH1I * ExTarget_9Be_L1;
+  //TH1I * ExTarget_9Be_L2;
+  //TH1I * ExTarget_9Be_T;
+  TH1F * Li7_AbsElasXS;
+  TH1F * ExTarget8Li;
 
   TH1I * Ex7Li_L1;
   TH1I * Ex7Li_L2;
@@ -224,6 +256,7 @@ class histo
 
   TH1I * ExTarget_10Be;
 
+  /*
   TH1I * ExTarget_12C_L1;
   TH1I * ExTarget_12C_L2;
   TH1I * ExTarget_12C_T;
@@ -231,7 +264,9 @@ class histo
   TH1I * ExTarget_27Al_L1;
   TH1I * ExTarget_27Al_L2;
   TH1I * ExTarget_27Al_T;
+  */
   TH2I * D2CsI;
+
 
   TH1I ** CsIRings;
   TH1I * gated_E_t_9Be;
@@ -251,13 +286,37 @@ class histo
   TH1F * cosPsi_9Be;
   TH1F * cosPsi_12C;
   TH1F * cosPsi_27Al;
+
+
+  TH1F * elas7Li_9Be;
+  TH1F * elas7Li_12C;
+  TH1F * elas7Li_27Al;
+
+  TH1F * mult7Li;
+  //6Li
+
+  TH1I * Ex8Be;
+  TH1I * Ex8BeT;
+  TH1I * Ex8BeL1;
+  TH1I * Ex8BeL2;
+
   TH1F * cosPsi_10Be;
+  TH1F * cosPsi_10Be_Rus;
+  TH1F * cosPsi_10Be_S2;
+  TH1F * cosPsi_10Be_RusS2;
+
+  TH2F * cosPsi_Chi_10Be;
+  TH2F * cosPsi_Chi_10Be_Rus;
+  TH2F * cosPsi_Chi_10Be_S2;
+  TH2F * cosPsi_Chi_10Be_RusS2;
+  
 
   TH1F * chi_9Be;
   TH1I * Ex6Li_Rus;
   TH1I * Ex6Li_S2;
   TH1I * Ex6Li_RusS2;
 
+  /*
   TH1I * Ex6Li_RusT;
   TH1I * Ex6Li_RusL1;
   TH1I * Ex6Li_RusL2;
@@ -269,6 +328,12 @@ class histo
   TH1I * Ex6Li_RusS2T;
   TH1I * Ex6Li_RusS2L1;
   TH1I * Ex6Li_RusS2L2;
+  */
+
+  TH1I * TKE_H2;
+  TH1I * TKE_A;
+  TH1I * Li6_thetaCM;
+  TH1I * Li6velCM;
 
 };
 #endif

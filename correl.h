@@ -100,6 +100,9 @@ class correl
   float KEToT;
   float thetaCM;
   float phiCM;
+  float velC[3];
+  float * momCM;
+  float thetaReactCoM;
   float thetaInReactCM;
   int maskProton[5];
   int maskAlpha[5];
@@ -220,7 +223,7 @@ class correl
 
   float velocityCM;
   float momentumCM;
-
+  float  momCoM[3];
 
   //jacobi
   void getJacobi();

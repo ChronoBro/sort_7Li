@@ -1,0 +1,26 @@
+#ifndef blockCal_
+#define blockCal_
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <cstdlib>
+using namespace std;
+
+
+class blockCal
+{
+ public:
+  blockCal(string file1);
+  ~blockCal();
+  void getCal(int blocko);
+  float getE(float channel, int blocko);
+  double Eslope_quad[32];
+  double Eslope[8];
+  double Eint[8];
+  double calSlope;
+  double calInt;
+  double energy;
+
+  
+};
+#endif

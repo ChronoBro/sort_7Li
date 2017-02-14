@@ -31,11 +31,12 @@ int main(int argc,char *argv[])
   int Nresumes = 0;
   int runno = 0;
 
- 
+
 
   det Det(Histo);
   Det.Nalphat = 0;
   Det.N7Li_ta =0;
+  Det.N7Li = 0;
 
   Det.Silicon->Ncross=0;
 
@@ -77,7 +78,7 @@ int main(int argc,char *argv[])
     }
     /* 0=blank  1=9Be    2=natural C     3=27Al  4=Au  5=1/16" Al 6=1/8" Al*/
 
-  if(targetFile.is_open()==0){cout << "target.run was not found" << endl;}
+  if(!targetFile.is_open()){cout << "ERROR opening target.run" << endl;}
   else
     {
       for(int k=0;k<(216-41);k++)
@@ -272,7 +273,6 @@ int main(int argc,char *argv[])
 		Det.Silicon->eventNum = physicsEvent;
 
 		stat = Det.unpack(point,runno); //start the data unpack
-
 		//cout << "out unpack " << endl;
                 if (stat) 
 		  {
@@ -418,6 +418,8 @@ int main(int argc,char *argv[])
   cout << "Number of cross-talk R21-R22 = " << Det.Silicon->Ncross << endl;
   
   cout << "Number of 7Li -> t + a = " << Det.N7Li_ta << endl;
+
+  cout << "Number of 7Li(elastic) = " << Det.N7Li << endl;
 
   cout << "Total Number in Rus = " << Det.Rus_count << endl;
 

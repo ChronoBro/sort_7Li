@@ -1,0 +1,24 @@
+#include "TH1.h"
+#include "TF1.h"
+#include "TCanvas.h"
+#include <fstream>
+#include <sstream>
+
+void eff()
+{
+  TCanvas mycan;
+  //mycan.SetCanvasSize(800,800);
+  TFile data("~/unpacker/sort.root");
+  TFile sim("~/sim/sim.root");
+
+
+  TH2F * eff = (TH2F*)sim.Get(cosPsi_Chi_R);
+  eff->Divide((TH2F*)sim.Get(cosPsi_Chi_P));
+  eff->Draw("colz")
+
+
+
+
+
+
+}

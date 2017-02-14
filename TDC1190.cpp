@@ -145,6 +145,7 @@ void TDC1190::readTDCerror(unsigned short error2, unsigned short error1)
     {
       cout << " not a TDC error " << endl;
       //abort();
+      notTDCerror = 1;
     }
   errorFlag = error1;
 }
@@ -192,11 +193,13 @@ void TDC1190::readTrailer(unsigned short trailer2, unsigned short trailer1)
    */
 unsigned short* TDC1190::read(unsigned short* point)
 {
+  notTDCerror=0;
   unsigned short word1 = *point++;
   unsigned short word2 = *point++;
   readGlobalHeader(word1,word2);
   for (;;)
     {
+      if(notTDCerror==1)return point;
       word1 = *point++;
       word2 = *point++;
       unsigned short word3 = word2 >> 11;

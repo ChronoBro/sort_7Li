@@ -608,14 +608,16 @@ float correl::findErel(int target)
   momentumCM = sqrt(momentumCM);
 
   //transform to average
-  float velC[3]={0.,0.,6.677};
+  velC[0]=0.;//{0.,0.,6.677};
+  velC[1]=0.;
+  velC[2]=0.;
   //float velC[3]={0.,0.,10.8699}; // 7Be beam
   //float velC[3]={0.,0.,10.7685};// 9C
   //  float velC[3]={0.,0.,10.8381};// 9C //should inquire about this DH
 
  
 
-  if(target==1)velC[2] = 6.66214; //7Li beam after going through half the target...need to make this target dependent!
+  if(target==1)velC[2] = 6.66;//6.62038;//6.66214;//6.63562;//6.66214 //7Li beam after going through half the target...need to make this target dependent!
   if(target==2)velC[2] = 6.66053;
   if(target==3)velC[2] = 6.66187;
 
@@ -630,14 +632,16 @@ float correl::findErel(int target)
   PparaC = momC[2];
   PtotC = sqrt(pow(momC[0],2)+pow(momC[1],2)+pow(momC[2],2));
 
-  //velocity of center of mass
+  //velocity of DECAY  center of mass
   velocityCM = momentumCM*Kinematics.c/energyTot;
-
 
   float velCM[3]={0.};
   for (int j=0;j<3;j++) velCM[j] = velocityCM/momentumCM*Mtot[j];
   thetaCM = acos(velCM[2]/velocityCM);
   phiCM = atan2(velCM[1],velCM[0]);
+
+  
+  
 
   float totalKE = 0.;
   for (int i=0;i<N;i++)
@@ -662,6 +666,39 @@ float correl::findErel(int target)
       mm = sqrt(mm);
       cosAlphaQ = dot/mm/PtotC;
     }
+
+  float mass_target=0.;
+  if(target==1)mass_target=9.;
+  if(target==2)mass_target=12.;
+  if(target==3)mass_target=27.;
+
+  float EPA0 = 24.;  
+  float Pbeam2_mean = sqrt(pow((EPA0+931.478)*7.,2)-pow(7.*931.478,2));
+
+
+  //reaction center of mass velocity
+  float Ecm = (EPA0+931.478)*7. + mass_target*931.478;
+  float pcm = Pbeam2_mean;
+  float vCM = pcm/Ecm*30.;
+
+
+  float velReactionCoM[3] ={0,0,vCM};
+  float  * momCoM;
+  momCoM = Kinematics.transformMom(Mtot,velReactionCoM,energyTot,momC);
+  float momTot = sqrt(pow(momCoM[0],2.)+pow(momCoM[1],2.)+pow(momCoM[2],2.));
+  //float mu = mas_target/(mass_target+7);
+  thetaReactCoM = atan(pcm*sin(thetaCM)/(pcm*cos(thetaCM)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
+
+
+ 
+ // shout out to skisickness.com for a GREAT relativistic derivation of this relationship 
+  // Should point out thetaCM is the angle of the reconstructed projectile in the LAB frame (CM refers to the reconstructed projectile) 
+  // Confusing right?
+  // I would use the other method but I believe my energy calibrations are screwing me again
+  // If the total energy is off (which it is I'm sure) then the velocity transform to the CM frame will be wrong
+  // Even if total energy is off the RELATIVE energies could be reasonably correct making my data a total wash
+  // should try doing what I have simulation at some point 9/21/2016
+
 
 
   return totalKE;

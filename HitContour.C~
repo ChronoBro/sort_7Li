@@ -1,0 +1,23 @@
+void HitContour()
+{
+
+ TCanvas * mycan1 = new TCanvas("mycan1","mycan1",900,600);
+ TFile * data = new TFile("~/unpacker/sort.root");
+
+ TH2F * hitmap = (TH2F*)sim->Get("HitMap")->Clone("6");
+
+
+ for(int i=1;i<=50;i++)
+   {
+     h1 = AngCorr->GetXaxis()->GetBinCenter(i);
+     for(int j=1;j<=90;j++)
+       {
+	 h2 = AngCorr->GetYaxis()->GetBinCenter(j);
+	 AngCorr->SetBinContent(i,j,f2->Eval(h1,h2,0,0));
+	 //cout << "f2(" << i << "," << j << ") = " << f2->Eval(h1,h2,0,0) << endl;
+       }
+   }
+ 
+ 
+ return;
+}
