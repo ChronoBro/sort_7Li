@@ -632,7 +632,7 @@ float correl::findErel(int target)
   PparaC = momC[2];
   PtotC = sqrt(pow(momC[0],2)+pow(momC[1],2)+pow(momC[2],2));
 
-  //velocity of DECAY  center of mass
+  //velocity of DECAY center of mass i.e. velocity of particle in LAB frame before it breaks up
   velocityCM = momentumCM*Kinematics.c/energyTot;
 
   float velCM[3]={0.};
@@ -674,22 +674,24 @@ float correl::findErel(int target)
 
   float EPA0 = 24.;  
   float Pbeam2_mean = sqrt(pow((EPA0+931.478)*7.,2)-pow(7.*931.478,2));
-
-
+  double Emane = (EPA0+931.478)*7 + mass_target*931.478;
+  double Ecm = pow( pow(Emane,2.)-pow(Pbeam2_mean,2.) , 0.5); //Ecm = sqrt( (E1+E2)^2-(p1+p2)^2 )
+  
   //reaction center of mass velocity
-  float Ecm = (EPA0+931.478)*7. + mass_target*931.478;
+  // float Ecm = (EPA0+931.478)*7. + mass_target*931.478;
   float pcm = Pbeam2_mean;
-  float vCM = pcm/Ecm*30.;
+  float vCM = Pbeam2_mean/Ecm*30. * mass_target/7.; //pcm = plab*m2/Ecm
+                                                    //want velocity of 7Li so I divide by 7 (OK in newtonian limit)
 
 
-  float velReactionCoM[3] ={0,0,vCM};
+  float velReactionCoM[3] ={0,0,velC[2]-vCM}; //velocity I want to transform by (in newtonian limit)
   float  * momCoM;
   momCoM = Kinematics.transformMom(Mtot,velReactionCoM,energyTot,momC);
   float momTot = sqrt(pow(momCoM[0],2.)+pow(momCoM[1],2.)+pow(momCoM[2],2.));
   //float mu = mas_target/(mass_target+7);
-  thetaReactCoM = atan(pcm*sin(thetaCM)/(pcm*cos(thetaCM)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
-
-
+  //double thetaReactCoM2 = atan(pcm*sin(thetaCM)/(pcm*cos(thetaCM)-7*931.478*pcm/Emane));//acos(momCoM[2]/momTot);
+  thetaReactCoM = acos(momCoM[2]/momTot);
+  //cout << thetaReactCoM - thetaReactCoM2 << endl;
  
  // shout out to skisickness.com for a GREAT relativistic derivation of this relationship 
   // Should point out thetaCM is the angle of the reconstructed projectile in the LAB frame (CM refers to the reconstructed projectile) 

@@ -1,9 +1,3 @@
-#include "TH1.h"
-#include "TF1.h"
-#include "TCanvas.h"
-#include <fstream>
-#include <sstream>
-
 void C12Eff()
 {
   gROOT->SetStyle("Plain");
@@ -32,7 +26,7 @@ void C12Eff()
   Sty->SetFuncWidth(3);
   Sty->SetFuncColor(kRed);
   Sty->SetLineWidth(3);
-  Sty->SetLabelSize(0.05,"xyz");
+  Sty->SetLabelSize(0.06,"xyz");
   Sty->SetLabelOffset(0.02,"y");
   Sty->SetLabelOffset(0.02,"x");
   Sty->SetLabelColor(kBlack,"xyz");
@@ -51,13 +45,14 @@ void C12Eff()
   gROOT->SetStyle("MyStyle");
   gROOT->ForceStyle();
 
-
+ 
   TCanvas * mycan1 = new TCanvas("mycan1","mycan1",900,600);
   TCanvas * mycan2 = new TCanvas("mycan2","mycan2",1200,800);
   TCanvas * mycan3 = new TCanvas("mycan3","mycan3",800,1200);
   //mycan.SetCanvasSize(800,800);
-  TFile * data = new TFile("~/unpacker/elas.root");
+  TFile * data = new TFile("~/unpacker/sortALLv2.root");
   TFile * sim = new TFile("~/sim12C/sim.root");
+  TFile * sim2 = new TFile("~/elasSim/sim12C/sim.root");
   gROOT->cd();
   mycan1->Divide(2,2);
   mycan2->Divide(3,3);
@@ -114,12 +109,14 @@ void C12Eff()
  
   cosPsi_lo2->Draw("PC");
   TH2F * thing3 = (TH2F*)sim->Get("cosPsi_Chi_smallAngle_R")->Clone("15");
-  TH1D * cosPsi_loEff = thing3->ProjectionX();
+  //TH1D * cosPsi_loEff = thing3->ProjectionX();
   TH2F * thing4 = (TH2F*)sim->Get("cosPsi_Chi_smallAngle_P")->Clone("16");
-  cosPsi_loEff->Divide(thing4->ProjectionX());
+  thing3->Divide(thing4);
+  //cosPsi_loEff->Divide(thing4->ProjectionX());
+  TH1D * cosPsi_loEff = thing3->ProjectionX();
   mycan2->cd(1);
   cosPsi_loEff->Draw("PC");
-
+  
  
   mycan2->cd(5);
   TH1D * cosPsi_mid2 = mid_12C->ProjectionX();
@@ -155,23 +152,29 @@ void C12Eff()
   mycan2->cd(6);
   cosPsi_hi->Draw("PC");
   */
+  TFile fileRoot ("C12Eff.root","RECREATE");
   
   mycan2->cd(7);
   TH1D* cosPsi_lo = (TH1D*)cosPsi_lo2->Clone();
+  cosPsi_lo->Sumw2();
+  small_12C->Divide(thing3);
   cosPsi_lo->Divide(cosPsi_loEff);
   cosPsi_lo->Draw("PC");
-  
+  //small_12C->ProjectionX()->Draw("P");
+  cosPsi_lo->Write();
 
+  
   mycan2->cd(8);
   TH1D * cosPsi_mid = (TH1D*)cosPsi_mid2->Clone();
   cosPsi_mid->Divide(cosPsi_midEff);
   cosPsi_mid->Draw("PC");
-  
+  cosPsi_mid->Write();
 
   mycan2->cd(9);
   TH1D * cosPsi_hi = (TH1D*)cosPsi_hi2->Clone();
   cosPsi_hi->Divide(cosPsi_hiEff);
   cosPsi_hi->Draw("PC");
+  cosPsi_hi->Write();
   
   /*
   TH1D * cosPsi_hi = hi_12C->ProjectionX();
@@ -206,7 +209,7 @@ void C12Eff()
 
   TGraph * gr1 = new TGraph(bins,x1,y1);
   gr1->Draw("AC");
-  gr1->GetYaxis()->SetRangeUser(0,12);
+  gr1->GetYaxis()->SetRangeUser(0,10);
 
   delete x1;
   delete y1;
@@ -290,12 +293,15 @@ void C12Eff()
   TH1F * really = (TH1F*)sim->Get("theta_reactionCM_P")->Clone("me");
   eff1D->Divide(really);
 
-  //eff1D->Draw();
+  eff1D->Draw();
 
-  TH1F * Be1D = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_12C")->Clone("27");
-  Be1D->Draw("P");
+  TH1F * Be1D = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_12C")->Clone("Li7_C12_inel_xs");
+
   Be1D->Divide(eff1D);
+  Be1D->Draw("P");
 
+  
+  //Be1D.Write();
   
   int k=181;
   ifstream file1("/Users/dhoff/Programs/AngCorr/elas_xsection_12C.plot"); //apparently you need to write out the whole thing for ROOT
@@ -312,7 +318,7 @@ void C12Eff()
   
   float SCALER = 321471.;
   SCALER=1.;
-  SCALER= 0.000046196*100.;
+  //SCALER= 0.000046196*100.;
 
   for(int i=0;i<k;i++)
     {
@@ -341,6 +347,7 @@ void C12Eff()
       float content = Be1D->GetBinContent(i);
       content = content/solidAng;///sin(Be1D->GetBinCenter(i)*3.14159/180.);
       Be1D->SetBinContent(i,content*SCALER);
+      Be1D->SetBinError(i,sqrt(content)/solidAng);
     }
   
 
@@ -351,9 +358,12 @@ void C12Eff()
   Be1D->GetXaxis()->SetRangeUser(0,20);
   Be1D->GetXaxis()->SetTitle("#theta_{CM}");
   Be1D->SetTitle("^{7}Li(7.2-) #sigma_{inel}");
+
+  //Be1D.Write();
+  
   c5->SetLogy();
 
-  TFile * sim2 = new TFile("~/elasSim/sim12C/sim.root");
+
 
   TCanvas * c6 = new TCanvas("r","r",800,600);
   TH1F * effEl = (TH1F*)sim2->Get("theta_reactionCM_R")->Clone("65");
@@ -361,7 +371,7 @@ void C12Eff()
 
   effEl->Divide(really2);
 
-  TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/7Li_elas_12C")->Clone("45");
+  TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/7Li_elas_12C")->Clone("Li7_C12_el_xs");
   BeElas->Divide(effEl);
 
   binW = BeElas->GetXaxis()->GetBinWidth(2);
@@ -374,6 +384,7 @@ void C12Eff()
       float content = BeElas->GetBinContent(i);
       //cout << content << endl;
       content = content/solidAng;//sin(BeElas->GetBinCenter(i)*3.14159/180.);
+      //content = content/sin(thetaC);
       BeElas->SetBinContent(i,content*SCALER);
       if(BeElas->GetBinCenter(i)>8 && BeElas->GetBinCenter(i)<11)
 	BeElas->SetBinContent(i,0.);
@@ -381,6 +392,8 @@ void C12Eff()
 	BeElas->SetBinContent(i,0.);
     }
 
+  //BeElas.Write();
+  
   BeElas->SetMarkerStyle(20);
   BeElas->Draw("P");
   E->Draw("same");
@@ -388,6 +401,7 @@ void C12Eff()
   BeElas->GetXaxis()->SetTitle("#theta_{CM}");
   BeElas->SetTitle("^{7}Li(7.2-) #sigma_{el}");
   c6->SetLogy();
+  //BeElas.Write();
 
   TCanvas * c7 = new TCanvas("b","b",800,600);
   TH1F * relative = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_12C")->Clone("73");
@@ -398,7 +412,28 @@ void C12Eff()
   c7->SetLogy();
   relative->GetXaxis()->SetRangeUser(0,25);
 
+  TFile * f = new TFile("C12XS.root","RECREATE");
+  BeElas->Write();
+  Be1D->Write();
 
+  ofstream output1("C12elasXS.dat");
+  ofstream output2("C12inelXS.dat");
+		   
+  for(int i=0;i<125;i++)
+    {
+      if(BeElas->GetBinContent(i)!=0)
+	{
+	  output1 << BeElas->GetBinCenter(i) << " " << BeElas->GetBinContent(i) << endl;
+	}
+
+      if(Be1D->GetBinContent(i)!=0)
+	{
+	  output2 << Be1D->GetBinCenter(i) << " " << Be1D->GetBinContent(i) << endl;
+	}
+
+    }
+  
+  fileRoot.Write();
 
   return;
 }

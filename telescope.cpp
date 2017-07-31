@@ -738,7 +738,11 @@ void telescope::analyze(int event)
 
       //if(A==7)Histo->Li7_AbsElasXS->Fill(theta);      
       
-	  
+      if(Z==3)
+	{
+	  Ekin = energy;
+	}
+      
           Solution[Nsolution].energy = energy;
 	  Solution[Nsolution].energyR = Csi.Order[0].energyR;
 	  Solution[Nsolution].denergy = Sienergy;
@@ -760,8 +764,13 @@ void telescope::analyze(int event)
 	  cout << "csI= " << CsIhit << endl;
 	  */
 	  
-
-
+	  // if(Z==3)
+	  //   {
+	  //     cout << energy << endl;
+	  //     cout << theta*180/3.14159 << endl;
+	  //     cout << Ekin << endl << endl;
+	  //  }
+	  
 
 	}
     }
@@ -775,7 +784,9 @@ void telescope::analyze(int event)
   //  Addfake();
   getMomentum(); //Adds energytotal and momentum to Solutions
     
+   
 
+  
 }
 //*******************************************************
 void telescope::reset()
@@ -1184,6 +1195,10 @@ int telescope::multiHitCsi()
 	      Ekin = Ein;
 	    }
 
+	  if(Z==3)
+	    {
+	      Ekin = energy[icsi];
+	    }
 	   
 	      Solution[ii].energy = energy[icsi];
 	      Solution[ii].energyR = energyR[icsi];

@@ -37,7 +37,7 @@ class pixels
   double targetdist[2];
   float deltatheta;
   float deltaphi;
-  float ** xy;;
+  //float ** xy;
   
 };
 #endif
