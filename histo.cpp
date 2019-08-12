@@ -438,11 +438,15 @@ histo::histo()
   Li7_theta_CM_12C = new TH1F("Li7_theta_CM_12C","",125,0,40);
   Li7_theta_CM_27Al = new TH1F("Li7_theta_CM_27Al","",125,0,40);
 
-  elas7Li_9Be = new TH1F("7Li_elas_9Be","",125,0,40);
-  elas7Li_12C = new TH1F("7Li_elas_12C","",125,0,40);
-  elas7Li_27Al = new TH1F("7Li_elas_27Al","",125,0,40);
+  elas7Li_9Be = new TH1F("Li7_elas_9Be","",60,0,40);
+  elas7Li_12C = new TH1F("Li7_elas_12C","",125,0,40);
+  elas7Li_27Al = new TH1F("Li7_elas_27Al","",60,0,30);
+  elas7Li_12C_pieCheck = new TH1F("Li7_elas_12C_pieCheck","",64,0,64);
+  elas7Li_12C_labAngle = new TH1F("Li7_elas_12C_labAngle","",125,0,40);;
+  elas7Li_E_12C = new TH1F("7Li_elas_E_12C","",1024,0,4096);
+  elas7Li_12C_phiCut = new TH1F("Li7_elas_12C_phiCut","",125,0,40);
 
-  Li7_AbsElasXS = new TH1F("7Li_AbsElas9Be","",125,0,40);
+  //Li7_AbsElasXS = new TH1F("7Li_AbsElas9Be","",125,0,40);
 
   mult7Li = new TH1F("mult7Li","",10,-0.5,9.5);
 
@@ -464,9 +468,9 @@ histo::histo()
   ExTarget_27Al_T= new TH1I("ExTarget_27Al_T","",480,-8,40);;
   */
 
-  gated_E_t_9Be = new TH1I("gated Triton p^2 9Be","",600,300,800);
-  gated_E_t_12C = new TH1I("gated Triton p^2 12C","",600,300,800);
-  gated_E_t_27Al = new TH1I("gated Triton p^2 27Al","",600,300,800);
+  // gated_E_t_9Be = new TH1I("gated Triton p^2 9Be","",600,300,800);
+  // gated_E_t_12C = new TH1I("gated Triton p^2 12C","",600,300,800);
+  // gated_E_t_27Al = new TH1I("gated Triton p^2 27Al","",600,300,800);
 
   calib_diag1 = new TH1I("calibration diagnositics1","",5,0,5);
   calib_diag2 = new TH1I("calibration diagnositics2","",5,0,5);
@@ -495,7 +499,7 @@ histo::histo()
   Ex6Li_T = new TH1I("Ex6Li_T","",300,0,15);
   ExTarget_10Be = new TH1I("ExTarget_10Be","",720,-8,40);
 
-  Ex8Be = new TH1I("Ex8Be","",440,-2,20);
+  Ex8Be = new TH1I("Ex8Be","",1200,-2,20);
   Ex8BeL1 = new TH1I("Ex8BeL1","",440,-2,20);
   Ex8BeL2 = new TH1I("Ex8BeL2","",440,-2,20);
   Ex8BeT = new TH1I("Ex8BeT","",440,-2,20);

@@ -238,7 +238,7 @@ class histo
   //TH1I * ExTarget_9Be_L1;
   //TH1I * ExTarget_9Be_L2;
   //TH1I * ExTarget_9Be_T;
-  TH1F * Li7_AbsElasXS;
+  //TH1F * Li7_AbsElasXS;
   TH1F * ExTarget8Li;
 
   TH1I * Ex7Li_L1;
@@ -291,7 +291,12 @@ class histo
   TH1F * elas7Li_9Be;
   TH1F * elas7Li_12C;
   TH1F * elas7Li_27Al;
+  TH1F * elas7Li_E_12C;
+  TH1F * elas7Li_12C_pieCheck;
+  TH1F * elas7Li_12C_labAngle;
 
+  TH1F * elas7Li_12C_phiCut;
+  
   TH1F * mult7Li;
   //6Li
 

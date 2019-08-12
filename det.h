@@ -8,8 +8,10 @@
 #include "histo.h"
 #include "correl.h"
 #include "doppler.h"
+#include <eigen3/Eigen/dense>
 
 using namespace std;
+using namespace Eigen;
 
 /**
  *!\brief detector readout

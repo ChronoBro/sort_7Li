@@ -132,7 +132,8 @@ float pixels::getAngle(int itele, int ipie, int iring)
   phi = TeleP[itele].Location[ipie][iring].phi;
   deltaphi = TeleP[itele].Location[ipie][iring].deltaphi;
   deltatheta = TeleP[itele].Location[ipie][iring].deltatheta;
-  return TeleP[itele].Location[ipie][iring].theta;
+  double x = ran.Rndm();
+  return TeleP[itele].Location[ipie][iring].theta + x*deltatheta;
   
 }
 //*********************************

@@ -594,14 +594,18 @@ float correl::findErel(int target)
   for (int i=0;i<3;i++) Mtot[i] = 0.;
   float energyTot = 0.;   // total energy for relativity, total mass for newton
 
+  //cout << N << endl;
 
-
+  
+  
   for (int i=0;i<N;i++) 
     {
       energyTot += frag[i]->energyTot;
       for (int j=0;j<3;j++)
         Mtot[j] += frag[i]->Mvect[j];
     }
+
+ 
 
   momentumCM = 0.;
   for (int j=0;j<3;j++) momentumCM += pow(Mtot[j],2);
@@ -684,14 +688,18 @@ float correl::findErel(int target)
                                                     //want velocity of 7Li so I divide by 7 (OK in newtonian limit)
 
 
-  float velReactionCoM[3] ={0,0,velC[2]-vCM}; //velocity I want to transform by (in newtonian limit)
+  //float velReactionCoM[3] ={0,0,velC[2]-vCM}; //velocity I want to transform by (in newtonian limit), relativistic would have 1/(1-velC*vCM/c^2)
+  float beam_axis[3] = {-3.5,1.5,-354.};
+  float mag = sqrt(pow(beam_axis[0],2.)+pow(beam_axis[1],2.)+pow(beam_axis[2],2.));
+  float velReactionCoM[3]={beam_axis[0]/mag*(velC[2]-vCM),beam_axis[1]/mag*(velC[2]-vCM),beam_axis[2]/mag*(velC[2]-vCM)}; //careful messing with stuff Dan 1/24/2018
+  
   float  * momCoM;
   momCoM = Kinematics.transformMom(Mtot,velReactionCoM,energyTot,momC);
   float momTot = sqrt(pow(momCoM[0],2.)+pow(momCoM[1],2.)+pow(momCoM[2],2.));
   //float mu = mas_target/(mass_target+7);
   //double thetaReactCoM2 = atan(pcm*sin(thetaCM)/(pcm*cos(thetaCM)-7*931.478*pcm/Emane));//acos(momCoM[2]/momTot);
   thetaReactCoM = acos(momCoM[2]/momTot);
-  //cout << thetaReactCoM - thetaReactCoM2 << endl;
+  //cout << thetaReactCoM*180./3.14159<< endl;
  
  // shout out to skisickness.com for a GREAT relativistic derivation of this relationship 
   // Should point out thetaCM is the angle of the reconstructed projectile in the LAB frame (CM refers to the reconstructed projectile) 

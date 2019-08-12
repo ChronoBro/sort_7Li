@@ -211,6 +211,16 @@ telescope::telescope(TRandom * ran0, int id0, histo * Histo0)
   */
 
 
+  //adding files to be export into x,y plots of dEE for machine learning algorithm tests
+  for(int i = 0; i < 32; i++){
+    ostringstream filename;
+    filename << "dEE_" << i << ".txt";
+    dEE_Files[i].open(filename.str());
+  }
+
+  //making file to scale all Z-Line data to make it similar for each telescope.
+  
+  
 }
 //************************************************
 telescope::~telescope()
@@ -458,12 +468,51 @@ void telescope::analyze(int event)
 
       
       bool stat = Pid[CsIhit]->getPID(CsIenergy,Sienergy);
-      if (!stat) return;
+      //scale factors for lining up elastic scattering peak
+      // will implement this next
+    
+      if (!stat){
+	dEE_Files[CsIhit] << CsIenergy << " " << Sienergy << " " << 0 <<  "\n"; //exporting data for machine learning tests
+	return;
+      }
       
       int Z = 0;
       Z= Pid[CsIhit]->Z;
       int A = 0;
       A = Pid[CsIhit]->A;
+      int classN = 0;
+      //classifying particle type from 0-9 for machine learning studies
+      classN = pow(2,Z)*pow(3,A-Z);
+      int classN2 = 0;
+      if(classN==2){
+	  classN2 = 1;
+	}
+      else if(classN==6){
+	classN2 = 2;
+      }
+      else if(classN==18){
+	classN2 = 3;
+      }
+      else if(classN==12){
+	classN2 = 4;
+      }
+      else if(classN==36){
+	classN2 = 5;
+      }
+      else if(classN==108){
+	classN2 = 6;
+      }
+      else if(classN==216){
+	classN2 = 7;
+      }
+      else if(classN==648){
+	classN2 = 8;
+      }
+      else if (classN==1944){
+	classN2 = 9;
+      }
+      
+      dEE_Files[CsIhit] << CsIenergy << " " << Sienergy << " " << classN2 <<  "\n"; //exporting data for machine learning tests
 
       if(A==7)Histo->HitMap_perspective->Fill(-xhit,yhit);
       
@@ -741,6 +790,7 @@ void telescope::analyze(int event)
       if(Z==3)
 	{
 	  Ekin = energy;
+	  //cout << "energy = " << CsIenergy << endl;
 	}
       
           Solution[Nsolution].energy = energy;
@@ -756,8 +806,10 @@ void telescope::analyze(int event)
 	  Solution[Nsolution].Ekin = Ekin;
 	  Solution[Nsolution].theta = theta;
 	  Solution[Nsolution].phi = phi;
+	  //cout << Solution[Nsolution].theta*180./3.14159 << endl;
 	  Nsolution=1;
-	  
+
+
 	  /*
 	  cout << "id=" << id << endl;
 	  cout << "ring= " << iring << endl;

@@ -37,6 +37,8 @@ class pixels
   double targetdist[2];
   float deltatheta;
   float deltaphi;
+
+  TRandom ran;
   //float ** xy;
   
 };

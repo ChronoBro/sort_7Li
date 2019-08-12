@@ -128,6 +128,9 @@ class telescope
   float check_slope[32];
   float check_intercept[32];
 
+  ifstream dEE_scaling;
+  ofstream dEE_Files[32]; //number of CsI detectors, will use these files for machine learning algorithm test
+  
 };
 
 #endif

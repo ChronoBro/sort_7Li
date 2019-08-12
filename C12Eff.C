@@ -50,7 +50,8 @@ void C12Eff()
   TCanvas * mycan2 = new TCanvas("mycan2","mycan2",1200,800);
   TCanvas * mycan3 = new TCanvas("mycan3","mycan3",800,1200);
   //mycan.SetCanvasSize(800,800);
-  TFile * data = new TFile("~/unpacker/sortALLv2.root");
+  //TFile * data = new TFile("~/unpacker/sortALLv2.root");
+  TFile * data = new TFile("~/unpacker/sort.root");
   TFile * sim = new TFile("~/sim12C/sim.root");
   TFile * sim2 = new TFile("~/elasSim/sim12C/sim.root");
   gROOT->cd();
@@ -297,7 +298,7 @@ void C12Eff()
 
   TH1F * Be1D = (TH1F*)data->Get("/corr/Li7/Li7_theta_reactCoM_12C")->Clone("Li7_C12_inel_xs");
 
-  Be1D->Divide(eff1D);
+  //Be1D->Divide(eff1D);
   Be1D->Draw("P");
 
   
@@ -345,7 +346,7 @@ void C12Eff()
       thetaC = Be1D->GetBinCenter(i)*3.14159/180.;
       solidAng = 2*3.14159*(cos(thetaC-binW/2.) - cos(thetaC+binW/2.));
       float content = Be1D->GetBinContent(i);
-      content = content/solidAng;///sin(Be1D->GetBinCenter(i)*3.14159/180.);
+      //content = content/solidAng;///sin(Be1D->GetBinCenter(i)*3.14159/180.);
       Be1D->SetBinContent(i,content*SCALER);
       Be1D->SetBinError(i,sqrt(content)/solidAng);
     }
@@ -371,7 +372,8 @@ void C12Eff()
 
   effEl->Divide(really2);
 
-  TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/7Li_elas_12C")->Clone("Li7_C12_el_xs");
+  //TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/7Li_elas_12C")->Clone("Li7_C12_el_xs");
+  TH1F * BeElas = (TH1F*)data->Get("/corr/Li7/Li7_elas_12C")->Clone("Li7_C12_el_xs");
   BeElas->Divide(effEl);
 
   binW = BeElas->GetXaxis()->GetBinWidth(2);
@@ -383,13 +385,13 @@ void C12Eff()
       solidAng = 2*3.14159*(cos(thetaC-binW/2.) - cos(thetaC+binW/2.));
       float content = BeElas->GetBinContent(i);
       //cout << content << endl;
-      content = content/solidAng;//sin(BeElas->GetBinCenter(i)*3.14159/180.);
+      //content = content/solidAng;//sin(BeElas->GetBinCenter(i)*3.14159/180.);
       //content = content/sin(thetaC);
       BeElas->SetBinContent(i,content*SCALER);
-      if(BeElas->GetBinCenter(i)>8 && BeElas->GetBinCenter(i)<11)
-	BeElas->SetBinContent(i,0.);
-      if(BeElas->GetBinCenter(i)<2.8)
-	BeElas->SetBinContent(i,0.);
+      // if(BeElas->GetBinCenter(i)>8 && BeElas->GetBinCenter(i)<11)
+      // 	BeElas->SetBinContent(i,0.);
+      // if(BeElas->GetBinCenter(i)<2.8)
+      // 	BeElas->SetBinContent(i,0.);
     }
 
   //BeElas.Write();
@@ -418,17 +420,20 @@ void C12Eff()
 
   ofstream output1("C12elasXS.dat");
   ofstream output2("C12inelXS.dat");
-		   
+
+  output1 << "angle " << "counts " << endl;//"sqrt(counts)" << endl;
+  output2 << "angle " << "counts " << endl;//"sqrt(counts)" << endl;
+  
   for(int i=0;i<125;i++)
     {
       if(BeElas->GetBinContent(i)!=0)
 	{
-	  output1 << BeElas->GetBinCenter(i) << " " << BeElas->GetBinContent(i) << endl;
+	  output1 << BeElas->GetBinCenter(i) << " " << BeElas->GetBinContent(i) << endl;// " " <<  sqrt(BeElas->GetBinContent(i)) << endl;
 	}
 
       if(Be1D->GetBinContent(i)!=0)
 	{
-	  output2 << Be1D->GetBinCenter(i) << " " << Be1D->GetBinContent(i) << endl;
+	  output2 << Be1D->GetBinCenter(i) << " " << Be1D->GetBinContent(i) << endl;//" " << sqrt(Be1D->GetBinContent(i)) << endl;
 	}
 
     }

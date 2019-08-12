@@ -201,7 +201,9 @@ void det::analyze(int event)
       corr_7Li();
     }
 
-
+  // if(mult==1){
+  //   corr_7Li();
+  // }
 
 }
 
@@ -274,12 +276,13 @@ void det::corr_7Li()
       Histo->mult7Li->Fill(Correl.mult7Li-0.5);
       //cout << Correl.mult7Li << endl;
       //Correl.findErel(target_no);
+      
       float mass_target=0;
       if(target_no==1)mass_target=9;
       if(target_no==2)mass_target=12;
       if(target_no==3)mass_target=27;
 
-      float EPA0 = 24.;  
+      float EPA0 = 24.2;  
       float Pbeam2_mean = sqrt(pow((EPA0+931.478)*7.,2)-pow(7.*931.478,2));
       //float Ecm = (EPA0+931.478)*7. + mass_target*931.478;
       //float pcm = Pbeam2_mean;
@@ -308,19 +311,36 @@ void det::corr_7Li()
       //cout << Correl.Li7[0]->energyTot << endl; 
       PTR2 = pow(ptr[0],2)+pow(ptr[1],2)+pow(ptr[2],2);
 
+      //cout << "Correl.thetaCM = " << Correl.thetaCM*180./3.14159 << endl;
+      //cout << "Correl.thetaReactionCM = " << Correl.thetaReactCoM*180./3.14159 << endl;
+
+      
+      double theta = Correl.Li7[0]->theta;
+      double phi = Correl.Li7[0]->phi;
       
       
       double energyTot = sqrt( pow(931.478*7,2)+PTR2 );
       
-      float velReactionCoM[3] ={0,0,velC[2]-vCM}; //since close to newtonian this works
+      float velReactionCoM[3] ={0,0,velC[2]-vCM}; //since close to newtonian this works, relativist will have 1/(1-velC*vCM/c^2)
+      //float velReactionCoM[3] = {-B[0]/Bmag*(velC[2]-vCM),-B[1]/Bmag*(velC[2]-vCM),-B[2]/Bmag*(velC[2]-vCM)};
       float  * momCoM;
       momCoM = Correl.Kinematics.transformMom((float*)ptr,velReactionCoM,energyTot,momC);
       float momTot = sqrt(pow(momCoM[0],2.)+pow(momCoM[1],2.)+pow(momCoM[2],2.));
-      //float mu = mas_target/(mass_target+7);
-      //double thetaReactCoM2 = atan(pcm*sin(thetaCM)/(pcm*cos(thetaCM)-7*931.478*pcm/Emane));//acos(momCoM[2]/momTot);
+      float mu = mass_target/(mass_target+7);
+      double thetaReactCoM2 = atan(pcm*sin(theta)/(pcm*cos(theta)-7*931.478*pcm/Emane));//acos(momCoM[2]/momTot); //non-relativistic expression
       double thetaReactCoM = acos(momCoM[2]/momTot);
- 
+
+      //thetaReactCoM = thetaReactCoM2;
       
+      double lightCsI = Correl.Li7[0]->energyR;
+
+      Histo->elas7Li_12C_pieCheck->Fill(Correl.Li7[0]->ipie);
+
+      //double y = 149.*sin(theta)*sin(phi);
+      //double x = 149.*sin(theta)*cos(phi);
+
+      // if(y<0.4 && y > -0.4)
+      // 	cout << "y = " << y << " phi = " << phi*180./3.14159 <<  endl;
       
       //float velReactionCoM[3] ={0,0,vCM};
       //float  * momCoM;
@@ -331,17 +351,24 @@ void det::corr_7Li()
       if(target_no==1)
 	{
 	  //thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
-	 Histo->elas7Li_9Be->Fill(thetaReactCoM*180/3.14159);
+	 Histo->elas7Li_9Be->Fill(thetaReactCoM2*180/3.14159);
 	}
       if(target_no==2)
 	{
 	  //thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
-	  Histo->elas7Li_12C->Fill(thetaReactCoM*180/3.14159);
+	  Histo->elas7Li_E_12C->Fill(Correl.Li7[0]->energyR);
+	  if(lightCsI >2600){
+	    Histo->elas7Li_12C->Fill(thetaReactCoM2*180./3.14159,1/sin(thetaReactCoM2));
+	    Histo->elas7Li_12C_labAngle->Fill(theta*180./3.14159);
+	  }
+	  // if(lightCsI > 2600 && y < 0.05 && y>-0.05 && x<0){ //&& phi*180./3.14159 > 350 && phi*180./3.14159 < 10){
+	  //   Histo->elas7Li_12C_phiCut->Fill(thetaReactCoM2*180./3.14159);
+	  // }
 	}
       if(target_no==3)
 	{
 	  //thetaReactCoM = atan(pcm*sin(Correl.Li7[0]->theta)/(pcm*cos(Correl.Li7[0]->theta)-7*931.478*pcm/Ecm));//acos(momCoM[2]/momTot);
-	 Histo->elas7Li_27Al->Fill(thetaReactCoM*180/3.14159);
+	 Histo->elas7Li_27Al->Fill(thetaReactCoM2*180/3.14159);
 	}
   
 
@@ -516,10 +543,10 @@ void det::corr_7Li()
 	  if (chi >  360) chi-=360.;
 	  if(target_no==1)
 	    { 
-	      if(Ex_target>-5.&&Ex_target<10.)
+	      if(Ex_target>-3.&&Ex_target<1.)
 		{
 		  Histo->cosPsi_Chi_10Be->Fill(cosPsi,chi);
-		  Histo->cosPsi_10Be->Fill(cosBeta);//(cosPsi);
+		  Histo->cosPsi_10Be->Fill(cosPsi);//(cosPsi);
 		  if(please==1){Histo->cosPsi_10Be_Rus->Fill(cosBeta);Histo->cosPsi_Chi_10Be_Rus->Fill(cosPsi,chi);}//(cosPsi);
 		  else if(please==2){Histo->cosPsi_10Be_S2->Fill(cosBeta);Histo->cosPsi_Chi_10Be_S2->Fill(cosPsi,chi);}//(cosPsi);
 		  else if(please==3){Histo->cosPsi_10Be_RusS2->Fill(cosBeta);Histo->cosPsi_Chi_10Be_RusS2->Fill(cosPsi,chi);}//(cosPsi);
@@ -609,7 +636,7 @@ void det::corr_7Li()
 	      pt[2] = Correl.H3[0]->Mvect[2];
 	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
 	      // cout << ppt << endl;
-	      Histo->gated_E_t_9Be->Fill(ppt);
+	      //	      Histo->gated_E_t_9Be->Fill(ppt);
 	      //if(ppt<650)
 	      Histo->ExTarget_9Be->Fill(Ex_target);
 	    }
@@ -648,14 +675,14 @@ void det::corr_7Li()
 	      //  cout << "target energy = " << Ex_target << endl;
 	      if(Correl.thetaCM > 0.0084)
 		Histo->Li7_theta_CM_12C->Fill(Correl.thetaCM*180./3.1415927);//,1./sin(Correl.thetaCM));
-	      Histo->Li7_theta_reactCoM_12C->Fill(Correl.thetaReactCoM*180/3.14159);
+	      Histo->Li7_theta_reactCoM_12C->Fill(Correl.thetaReactCoM*180/3.14159,1./sin(Correl.thetaReactCoM));
 	      //Histo->Li7_theta_reactCoM_12C->Fill(Correl.cosThetaC*180/3.14159);
 	      //cout << Correl.thetaReactCoM-Correl.cosThetaC << endl;
 	      pt[0] = Correl.H3[0]->Mvect[0];
 	      pt[1] = Correl.H3[0]->Mvect[1];
 	      pt[2] = Correl.H3[0]->Mvect[2];
 	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
-	      Histo->gated_E_t_12C->Fill(ppt);
+	      //	      Histo->gated_E_t_12C->Fill(ppt);
 	      Histo->ExTarget_C->Fill(Ex_target);
 	    }
 	  
@@ -682,7 +709,7 @@ void det::corr_7Li()
 	      pt[1] = Correl.H3[0]->Mvect[1];
 	      pt[2] = Correl.H3[0]->Mvect[2];
 	      ppt = sqrt(pow(pt[0],2)+pow(pt[1],2)+pow(pt[2],2));
-	      Histo->gated_E_t_27Al->Fill(ppt);
+	      //	      Histo->gated_E_t_27Al->Fill(ppt);
 	      Histo->ExTarget_Al->Fill(Ex_target);
 	    }
 	} 
@@ -752,7 +779,38 @@ void det::corr_7Li()
 	  if (chi >  360) chi-=360.;
 	  //if (chi < 0 && chi > -180)chi+=360.;
 
+	  //want to rotate the quantization axis by some amount in the reaction plane: 8/16/2017
+	  //will have to confirm with Bob but I think this can be defined by 7Li momentum and beam-axis
+	  //Psi and Chi are defined by the reaction plane, Psi is the angle in the reaction plane so only need to rotate that value
+	  //remember have to rotate backwards to get angle (probably doesn't matter if symmetric)
+	  //x = cos(Psi), y = sin(Psi)
 
+	  //x' = x*cos(theta_rot) + y*sin(theta_rot);
+
+	  double theta_rot = 0.; //in degrees
+	  theta_rot = theta_rot*3.1415927/180.;
+	  double psi = acos(cosPsi);
+	  double x1,y1,z1;
+	  x1 = cos(chi)*sin(psi);
+	  y1 = sin(chi)*sin(psi);
+	  z1 = cos(psi);
+	  
+	  double x2,y2,z2;
+	  //for rotation about y-axis (in reaction-plane)
+	  x2 = x1*cos(theta_rot)+z1*sin(theta_rot);
+	  y2 = y1;
+	  z2 = -x1*sin(theta_rot)+z1*cos(theta_rot);
+    
+	  //for rotation about x-axis (out of reaction-plane)
+	  x2 = x1;
+	  y2 = y1*cos(theta_rot) - z1*sin(theta_rot);
+	  z2 = y1*sin(theta_rot) + z1*cos(theta_rot);
+    
+
+	  
+	  //cosPsi = cosPsi*cos(theta_rot)+ sin( acos(cosPsi) )*sin(theta_rot);
+	  cosPsi = z2;
+	  
 	  if(target_no==1)
 	    {
 	      //if(Ex_target>1.1)
@@ -763,9 +821,9 @@ void det::corr_7Li()
 		  if(please==1)Histo->cosPsi_Chi_9Be_Rus->Fill(cosPsi,chi);
 		  if(please==2)Histo->cosPsi_Chi_9Be_S2->Fill(cosPsi,chi);
 		  if(please==3)Histo->cosPsi_Chi_9Be_RusS2->Fill(cosPsi,chi);
-		  if(Correl.thetaReactCoM*180./3.1415927<5)
+		  if(Correl.thetaReactCoM*180./3.1415927<1)
 		    Histo->cosPsi_Chi_9Be_small_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaReactCoM*180./3.1415927>5&&Correl.thetaReactCoM*180./3.1415927<15)
+		  if(Correl.thetaReactCoM*180./3.1415927>1&&Correl.thetaReactCoM*180./3.1415927<3)
 		    Histo->cosPsi_Chi_9Be_mid_angle->Fill(cosPsi,chi);
 		  if(Correl.thetaReactCoM*180./3.1415927>15)
 		    Histo->cosPsi_Chi_9Be_large_angle->Fill(cosPsi,chi);
@@ -789,8 +847,8 @@ void det::corr_7Li()
 	  if(target_no==2)
 	    {
 	      //if(Ex_target>3&&Ex_target<7){
-	      if(Ex_target>-10&&Ex_target<3)
-		{
+	      if(Ex_target>-10&&Ex_target<3){
+		
 		  Histo->cosPsi_Chi_12C->Fill(cosPsi,chi);
 		  Histo->cosPsi_12C->Fill(cosPsi);
 		  if(Correl.thetaReactCoM*180./3.1415927<0)
@@ -824,7 +882,7 @@ void det::corr_7Li()
 		  Histo->cosPsi_27Al->Fill(cosPsi);
 		  if(Correl.thetaReactCoM*180./3.1415927<5)
 		    Histo->cosPsi_Chi_27Al_small_angle->Fill(cosPsi,chi);
-		  if(Correl.thetaReactCoM*180./3.1415927>10 && Correl.thetaReactCoM*180./3.1415927<12)
+		  if(Correl.thetaReactCoM*180./3.1415927>3.5 && Correl.thetaReactCoM*180./3.1415927<30)
 		    Histo->cosPsi_Chi_27Al_mid_angle->Fill(cosPsi,chi);
 		  if(Correl.thetaReactCoM*180./3.1415927>15)
 		    Histo->cosPsi_Chi_27Al_large_angle->Fill(cosPsi,chi);

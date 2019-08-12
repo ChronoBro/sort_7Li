@@ -1,0 +1,122 @@
+#include "TF2.h"
+#include "TH2.h"
+#include "TMath.h"
+#include "TSystem.h"
+#include "matrix.h"
+
+
+void INEL()
+{
+  //matrix C(4,4);
+
+  TFile * data = new TFile("~/unpacker/sort.root");
+  //TFile * data = new TFile("~/unpacker/run131_BeamAxisAligned.root");
+  TFile * sim = new TFile("~/sim/sim.root");
+  //gROOT->cd();
+  gStyle->SetOptStat(0);
+  //gStyle->SetPalette(55); //55 for rainbow, doesn't look too bad
+
+  // TH2F * eff = (TH2F*)sim->Get("cosPsi_Chi_midAngle_R")->Clone("1");
+  // TH2F * effD = (TH2F*)sim->Get("cosPsi_Chi_midAngle_P")->Clone("3");
+
+  TH1F * eff1D = (TH1F*)sim->Get("theta_reactionCM_R")->Clone("eff1D");
+  TH1F * eff1D2 = (TH1F*)sim->Get("theta_reactionCM_P")->Clone("eff1D2");
+
+  
+  if(!eff1D->Divide(eff1D2))
+    {
+      cout << "Efficiency not calculated correctly" << endl;
+      return;
+    }
+
+  TCanvas * c2 = new TCanvas("eff1D","eff1D",800,600);
+  eff1D->Draw("colz");
+  
+  char angName[256];
+  sprintf(angName,"%s","/corr/Li7/Li7_theta_reactCoM_12C");
+  //sprintf(angName,"%s","/corr/Li7/Li7_theta_CM_12C");
+  TH1F * AngDist = (TH1F*)data->Get(angName)->Clone("inelAngDist");
+
+  
+  
+  //TH2F * AngDist = (TH2F*)data->Get(angName)->Clone("");
+
+  TH1F * projectionUse = AngDist;
+  //projectionUse->Sumw2();
+
+  // double scalar = 54875.+89068.+74562.; //for runs 71,72,73 mult=1 trigger with C target
+  // cout << "scalar ELAS = " << scalar << endl;
+  //scalar = 18830.+16955.+121511.+4403.+6529.+6620.+6787.+7158.+9931.+3670.+3782.+3525.+3495.+3363.+3694.+3430.+3333.+3313.+4751.;
+  //cout << "scalar INEL = " << scalar << endl;
+  double scalar = 3356.;
+  
+  int Nbins = projectionUse->GetNbinsX();
+  cout << "Nbins = " << Nbins << endl;
+  //get rid of first and last bins
+  // projectionUse->SetBinContent(9,0);
+  // projectionUse->SetBinContent(25,0);
+  projectionUse->SetBinContent(75,0);
+  projectionUse->SetBinContent(72,0);
+  projectionUse->SetBinContent(73,0);
+  
+
+  double * binErrors = new double[projectionUse->GetNbinsX()];
+
+  for(int j=0;j<Nbins;j++)
+    {
+      binErrors[j] = sqrt(projectionUse->GetBinContent(j))/eff1D->GetBinContent(j);
+    }
+
+  //projectionUse->Sumw2();
+  
+  if(!projectionUse->Divide(eff1D)){
+    cout << "Efficiency correction did not work" << endl;
+  }
+
+  
+  
+   for(int j=0;j<projectionUse->GetNbinsX();j++)
+    {
+      //binErrors[j] = sqrt(projectionUse->GetBinContent(j));
+      projectionUse->SetBinError(j,binErrors[j]/scalar);
+      //projectionUse->SetBinContent(j,projectionUse->GetBinContent(j)/sin(projectionUse->GetBinCenter(j)*3.14159/180.)/scalar);
+      projectionUse->SetBinContent(j,projectionUse->GetBinContent(j)/scalar);
+      //cout << projectionUse->GetBinContent(j) << endl;
+    }
+
+   // projectionUse->SetBinContent(1,0);
+   // projectionUse->SetBinContent(projectionUse->GetNbinsX(),0);
+
+   
+  
+  //TCanvas * c1 = new TCanvas("1D_angDist","",800,600);
+  TCanvas * c1 = new TCanvas("1D_angDist","1D_angDist",800,600);
+  // Double_t fparam2[5] = {0.128,0.151,0.222,0.35,10.};
+  // TF1 * f = new TF1("f",fun,-1,1,5);
+  // f->SetParameters(fparam2);
+  // projectionUse->Fit("f","M","",-1,1); //last two numbers specify the range of the fit
+  // f->SetLineColor(5);
+  // f->Draw("C");
+  // f->GetXaxis()->SetTitle("cos(#psi)");
+  // f->GetXaxis()->CenterTitle();
+  // projectionUse->SetMarkerStyle(8);
+  projectionUse->GetYaxis()->SetRangeUser(0.001,10);
+  projectionUse->GetXaxis()->SetRangeUser(0,25);
+  c1->SetLogy();
+  
+  //AngDist->Draw();
+  projectionUse->Draw();
+  
+  
+
+  TFile f1("fitINEL.root","RECREATE");
+  projectionUse->Write();
+  eff1D->Write();
+  AngDist->Write();
+  
+  // data->Close();
+  // sim->Close();
+  // f1.Close();
+
+  
+}

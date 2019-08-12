@@ -48,7 +48,7 @@ Double_t ass_legend(int l, int m, Double_t x)
     {
       if(m==0) return 0.5*(3*pow(x,2.)-1);
       if(m==1) return -3*x*pow(1 - pow(x,2.) ,0.5);
-      if(m==2) return 3*(1-pow(x,2.));
+     if(m==2) return 3*(1-pow(x,2.));
     }
   else if(l==3)
     {
@@ -204,8 +204,8 @@ void fit2()
 {
   //matrix C(4,4);
   TCanvas * c1 = new TCanvas("mycan","mycan",800,600);
-  TFile * data = new TFile("~/unpacker/sort.root");
-  TFile * sim = new TFile("~/sim12C/sim.root");
+  TFile * data = new TFile("~/unpacker/sortALLv2.root");
+  TFile * sim = new TFile("~/sim/sim.root");
   //gROOT->cd();
   gStyle->SetOptStat(0);
   //gStyle->SetPalette(55); //55 for rainbow, doesn't look too bad
@@ -225,16 +225,19 @@ void fit2()
 
 
   eff->Draw("colz");
-  
+  eff->GetYaxis()->SetTitle("#chi [deg]");
+  eff->GetYaxis()->CenterTitle();
+  eff->GetXaxis()->SetTitle("cos(#psi)");
+  eff->GetXaxis()->CenterTitle();
   
   char angName[256];
-  sprintf(angName,"%s","/corr/Li7/cosPsi_Chi_12C");
+  sprintf(angName,"%s","/corr/Li7/cosPsi_Chi_9Be");
   TH2F * AngDist = (TH2F*)data->Get(angName)->Clone("2");
-
+  
   TH1D * projectionUse = AngDist->ProjectionX()->Clone("1D_angDist");
   
   AngDist->Divide(eff);
-  AngDist->Draw("colz");
+  //AngDist->Draw("colz");
   AngDist->GetXaxis()->SetTitle("cos(#psi)");
   AngDist->GetYaxis()->SetTitle("#chi [deg]");
   AngDist->GetYaxis()->CenterTitle();
@@ -244,6 +247,7 @@ void fit2()
   //AngDist->GetZaxis()->SetRangeUser(
 
   Double_t f2params[17]={0.028,0.051,-0.031,0.122,-0.055,0.312,0.037,0.-0.052,-0.027,0.011,0.042,-0.004,-0.024,-0.026,0.005,-0.006,10.};
+  //Double_t f2params[17]={0.028,0.051,-0.031,0.122,-0.055,0.312,0.037,0.-0.052,-0.027,0.011,0.042,-0.004,-0.024,-0.026,0.005,-0.006,10.};
   TF2 * f2 = new TF2("f2",fun3,-1,1,0,360,17);
   f2->SetParameters(f2params);
   //f2->Draw("colz");
@@ -293,18 +297,29 @@ void fit2()
   TLatex pug;
   // pug.DrawLatex(-0.85,325,"#color[0]{(a)}");
 
+  //projectionUse->Draw();
+  
   TCanvas * c3 = new TCanvas("mycan1","mycan1",800,600);
 
   TH1D * projection = AngDist->ProjectionX();
+  projectionUse->Sumw2();
+  
+  for (int i=1;i<projectionUse->GetSize()-1.;i++){
+    
+    projectionUse->SetBinError(i,projectionUse->GetBinError(i)/eff1D->GetBinContent(i));
+    projectionUse->SetBinContent(i,projectionUse->GetBinContent(i)/eff1D->GetBinContent(i));
 
 
-  if(!projectionUse->Divide(eff1D))
-    {
-      cout << "1D projection effeciency screwed up!" << endl;
-    }
+  }
+  
+  // if(!projectionUse->Divide(eff1D))
+  //   {
+  //     cout << "1D projection effeciency screwed up!" << endl;
+  //   }
   
   
-  Double_t fparam2[5] = {0.028,0.151,0.122,0.212,10.};
+  //Double_t fparam2[5] = {0.028,0.151,0.122,0.212,10.};
+  Double_t fparam2[5] = {0.2,0.1,0.05,0.2,100.};
   TF1 * f = new TF1("f",fun,-1,1,5);
   f->SetParameters(fparam2);
   projectionUse->Fit("f","M");
@@ -326,10 +341,10 @@ void fit2()
 
 
   // TCanvas * c10 = new TCanvas("1D_AngDist","1D_AngDist",800,600);
-  // projectionUse->Draw();
+  projectionUse->Draw();
   
   TFile out("fit.root","RECREATE");
-  projection->Write();
+  projectionUse->Write();
   AngCorr->Write();
   AngDist->Write();
   projectionUse->Write();
@@ -408,13 +423,15 @@ void fit2()
   rhoL[1] = f2->GetParameter(1);
   rhoL[0] = f2->GetParameter(0);
 
-  // rhoL[3] = f->GetParameter(3); //index matches value of L, but screws up my matrix unless I go backwards
-  // rhoL[2] = f->GetParameter(2);
-  // rhoL[1] = f->GetParameter(1);
-  // rhoL[0] = f->GetParameter(0);
+  rhoL[3] = f->GetParameter(3); //index matches value of L, but screws up my matrix unless I go backwards
+  rhoL[2] = f->GetParameter(2);
+  rhoL[1] = f->GetParameter(1);
+  rhoL[0] = f->GetParameter(0);
 
-  
-  
+  rhoLEr[3] = f->GetParError(3);
+  rhoLEr[2] = f->GetParError(2);
+  rhoLEr[1] = f->GetParError(1);
+  rhoLEr[0] = f->GetParError(0);
   
 
   
@@ -432,7 +449,7 @@ void fit2()
   for(int i=0;i<4;i++)
     {
       rhoL[i] = rhoL[i]/TOT;
-      //rhoLEr[i] = rhoLEr[i]/TOT;
+      rhoLEr[i] = rhoLEr[i]/TOT;
       cout << "rho 3_" << i << " = " << rhoL[i] << endl;
     }
 
@@ -450,10 +467,10 @@ void fit2()
   rhoS[2] = 7./6.*(rhoL[2]-2./7.*rhoS[1]);
   rhoS[3] = rhoL[3] - rhoS[2]/7.;
 
-  // rhoSEr[0] = 7./8.*rhoLEr[0];
-  // rhoSEr[1] = 7./5.*(rhoLEr[1]-3./8.*rhoLEr[0]);
-  // rhoSEr[2] = 7./6.*(rhoLEr[2]-2./7.*rhoSEr[1]);
-  // rhoSEr[3] = rhoLEr[3] - rhoSEr[2]/7.;
+  rhoSEr[0] = 7./8.*rhoLEr[0];
+  rhoSEr[1] = 7./5.*(rhoLEr[1]-3./8.*rhoLEr[0]);
+  rhoSEr[2] = 7./6.*(rhoLEr[2]-2./7.*rhoSEr[1]);
+  rhoSEr[3] = rhoLEr[3] - rhoSEr[2]/7.;
 
 
   
@@ -468,7 +485,7 @@ void fit2()
 
   float x_2[8] = {-3.5,-2.5,-1.5,-0.5,0.5,1.5,2.5,3.5};
   float y_2[8] = {rhoS[3],rhoS[2],rhoS[1],rhoS[0],rhoS[0],rhoS[1],rhoS[2],rhoS[3]};
-  //float y_2Error[8] = {rhoSEr[3],rhoSEr[2],rhoSEr[1],rhoSEr[0],rhoSEr[0],rhoSEr[1],rhoSEr[2],rhoSEr[3]};
+  float y_2Error[8] = {rhoSEr[3],rhoSEr[2],rhoSEr[1],rhoSEr[0],rhoSEr[0],rhoSEr[1],rhoSEr[2],rhoSEr[3]};
 
   TCanvas * c4 = new TCanvas("mycan2","mycan2",800,600);
 
@@ -487,7 +504,7 @@ void fit2()
   bar2->SetTitle("");
 
   double alignment=0.;
-  //double alError=0;
+  double alError=0;
   
   const int Nj = 8;
   double xs[Nj];
@@ -505,11 +522,11 @@ void fit2()
       //cout << "factor = " << factor << endl;
       //cout << "y_2[i] = " << y_2[i] << endl;
       alignment += factor;
-      //alError + = factor/y_2[i]*y_2Error[i];
+      alError + = factor/y_2[i]*y_2Error[i];
     }
 
   cout << endl << "alignment = " << alignment << endl;
-  //cout << "error = " << alError << endl;
+  cout << "error = " << alError << endl;
   
   
   

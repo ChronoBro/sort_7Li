@@ -152,7 +152,7 @@ Double_t fun3(Double_t * x,Double_t * par)
 //should at some point try creating a histogram and setting the bin content to the function, it might make for a smoother plot
 
 
-Double_t fun(Double_t * x, Double_t * par)
+Double_t fun(Double_t * x, Double_t * par) //I will square the parameters so they can't be negative
 {
 
   Double_t result = par[0]*pow(ass_legend(3,0,x[0]),2);
@@ -192,8 +192,8 @@ Double_t hey2(Double_t * x, Double_t * par)
 void fit1D()
 {
   //matrix C(4,4);
-  TCanvas * c1 = new TCanvas("mycan","mycan",800,600);
-  TFile * data = new TFile("~/unpacker/sort.root");
+
+  TFile * data = new TFile("~/unpacker/sortALLv2.root");
   TFile * sim = new TFile("~/sim12C/sim.root");
   //gROOT->cd();
   gStyle->SetOptStat(0);
@@ -202,8 +202,8 @@ void fit1D()
   // TH2F * eff = (TH2F*)sim->Get("cosPsi_Chi_midAngle_R")->Clone("1");
   // TH2F * effD = (TH2F*)sim->Get("cosPsi_Chi_midAngle_P")->Clone("3");
 
-  TH1F * eff1D = (TH1F*)sim->Get("cosPsi_midAngle_R")->Clone("eff1D");
-  TH1F * eff1D2 = (TH1F*)sim->Get("cosPsi_midAngle_P")->Clone("eff1D2");
+  TH1F * eff1D = (TH1F*)sim->Get("cosPsi_R")->Clone("eff1D");
+  TH1F * eff1D2 = (TH1F*)sim->Get("cosPsi_P")->Clone("eff1D2");
 
   
   if(!eff1D->Divide(eff1D2))
@@ -212,8 +212,11 @@ void fit1D()
       return;
     }
 
+  TCanvas * c2 = new TCanvas("eff1D","eff1D",800,600);
+  eff1D->Draw("colz");
+  
   char angName[256];
-  sprintf(angName,"%s","/corr/Li7/cosPsi_Chi_12C_mid_angle");
+  sprintf(angName,"%s","/corr/Li7/cosPsi_Chi_12C");
   TH2F * AngDist = (TH2F*)data->Get(angName)->Clone("ang2D");
 
   
@@ -222,9 +225,16 @@ void fit1D()
   TH1D * projectionUse = AngDist->ProjectionX()->Clone("ang1D");
   //projectionUse->Sumw2();
 
+  int Nbins = projectionUse->GetNbinsX();
+  //get rid of first and last bins
+  // projectionUse->SetBinContent(1,0);
+  // projectionUse->SetBinContent(Nbins,0);
+  // projectionUse->SetBinContent(2,0);
+  // projectionUse->SetBinContent(Nbins-1,0);
+
   double * binErrors = new double[projectionUse->GetNbinsX()];
 
-  for(int j=0;j<projectionUse->GetNbinsX();j++)
+  for(int j=0;j<Nbins;j++)
     {
       binErrors[j] = sqrt(projectionUse->GetBinContent(j))/eff1D->GetBinContent(j);
     }
@@ -237,16 +247,18 @@ void fit1D()
       //binErrors[i] = sqrt(projectionUse->GetBinContent(i))/eff1D->GetBinContent(i);
       projectionUse->SetBinError(j,binErrors[j]);
     }
- 
+
+   // projectionUse->SetBinContent(1,0);
+   // projectionUse->SetBinContent(projectionUse->GetNbinsX(),0);
 
    projectionUse->Sumw2();
   
   //TCanvas * c1 = new TCanvas("1D_angDist","",800,600);
-
-  Double_t fparam2[5] = {0.028,0.051,0.022,0.512,10.};
+  TCanvas * c1 = new TCanvas("1D_angDist","1D_angDist",800,600);
+  Double_t fparam2[5] = {0.128,0.151,0.222,0.35,10.};
   TF1 * f = new TF1("f",fun,-1,1,5);
   f->SetParameters(fparam2);
-  projectionUse->Fit("f","M");
+  projectionUse->Fit("f","M","",-1,1); //last two numbers specify the range of the fit
   f->SetLineColor(5);
   f->Draw("C");
   f->GetXaxis()->SetTitle("cos(#psi)");
@@ -321,8 +333,12 @@ void fit1D()
   rhoLEr[2] = f->GetParError(2);
   rhoLEr[1] = f->GetParError(1);
   rhoLEr[0] = f->GetParError(0);
- 
 
+  //just doing this for Bob's values
+  // rhoL[3] = 0.3122;
+  // rhoL[2] = 0.1222;
+  // rhoL[1] = 0.0511;
+  // rhoL[0] = 0.0281;
   
   // normalize values
   float TOT= rhoL[0]+2*rhoL[1]+2*rhoL[2]+2*rhoL[3];
@@ -350,6 +366,7 @@ void fit1D()
 
   // solving spin state density matrix values (diagnoal values) by back substitution below
 
+  
 
   rhoS[0] = 7./8.*rhoL[0];
   rhoS[1] = 7./5.*(rhoL[1]-3./8.*rhoL[0]);
@@ -376,21 +393,24 @@ void fit1D()
   float y_2[8] = {rhoS[3],rhoS[2],rhoS[1],rhoS[0],rhoS[0],rhoS[1],rhoS[2],rhoS[3]};
   float y_2Error[8] = {rhoSEr[3],rhoSEr[2],rhoSEr[1],rhoSEr[0],rhoSEr[0],rhoSEr[1],rhoSEr[2],rhoSEr[3]};
 
-  TCanvas * c4 = new TCanvas("mycan2","mycan2",800,600);
+  TCanvas * c4 = new TCanvas("rhoL","rhoL",800,600);
 
   TGraph * bar1 = new TGraph(7,x_1,y_1);
   bar1->Draw("AB");
   bar1->GetXaxis()->SetTitle("m");
   bar1->GetYaxis()->SetTitle(" #rho^{l}_{m,m} ");
   bar1->SetTitle("");
+  bar1->Write();
 
-  TCanvas * c5 = new TCanvas("mycan3","mycan3",800,600);
+  TCanvas * c5 = new TCanvas("rhoJ","rhoJ",800,600);
 
   TGraph * bar2 = new TGraph(8,x_2,y_2);
   bar2->Draw("AB");
   bar2->GetXaxis()->SetTitle("m*");
-  bar2->GetYaxis()->SetTitle(" #rho^{l}_{m*,m*} " );
+  bar2->GetYaxis()->SetTitle(" #rho^{J}_{m*,m*} " );
   bar2->SetTitle("");
+
+  bar2->Write();
 
   double alignment=0.;
   double alError=0.;
